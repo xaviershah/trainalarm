@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Xcode / iOS
+ios/build/
+ios/DerivedData/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/*.xcworkspace/xcuserdata/
+*.xcuserstate
+ios/.swiftpm/
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/captures/
+android/.cxx/
+
+# Environment / secrets
+.env
+*.local.properties

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      TODO (Stage 3): AlarmKit's exact entitlement/authorization requirements
+      were not confirmed against Apple's current docs during research — read
+      https://developer.apple.com/documentation/AlarmKit directly before
+      Stage 3 and add whatever this dict actually needs. Do not guess a key
+      name here.
+    -->
+</dict>
+</plist>

@@ -1,0 +1,42 @@
+name: TrainAlarm
+options:
+  bundleIdPrefix: com.trainalarm
+  deploymentTarget:
+    iOS: "26.0"
+targets:
+  TrainAlarm:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/TrainAlarm
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.trainalarm.app
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Automatic
+    info:
+      properties:
+        UILaunchScreen: {}
+        NSLocationWhenInUseUsageDescription: "TrainAlarm needs your location to track your progress along the train route and know when to wake you."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "TrainAlarm needs background location access so it can keep tracking your journey and wake you before your stop, even while your phone is locked."
+        UIBackgroundModes:
+          - location
+    entitlements:
+      path: Sources/TrainAlarm/TrainAlarm.entitlements
+      properties: {}
+  TrainAlarmTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/TrainAlarmTests
+    dependencies:
+      - target: TrainAlarm
+schemes:
+  TrainAlarm:
+    build:
+      targets:
+        TrainAlarm: all
+        TrainAlarmTests: [test]
+    test:
+      targets:
+        - TrainAlarmTests
