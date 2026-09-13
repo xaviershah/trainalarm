@@ -27,14 +27,34 @@ already in context.
   ETA/alarm logic depends only on this interface, never on a raw API
   response shape directly.
 
-## 3. UK provider (v1)
+## 3. UK provider (v1) — STATUS: schema blocked, see below
 
-Realtime Trains (`api.rtt.io`) — free pull API for non-commercial use,
-self-service sign-up. Production migration target: National Rail's Darwin
-feed via the National Rail Data Portal (JSON) or the newer Rail Data
-Marketplace — the relationship between the two was unclear from docs alone
-as of the research pass; confirm by actually registering before relying on
-either.
+**Important, time-sensitive finding (as of Sep 2026):** the legacy RTT pull
+API at `api.rtt.io` is being decommissioned **30 September 2026** — soon
+enough that it's not worth building against. RTT has a next-generation
+bearer-token API instead (docs at
+`realtimetrains.github.io/api-specification`, tokens via
+`api-portal.rtt.io`), with "a new more usable JSON structure... and
+much-requested ISO-8601 datetimes" per RTT's own announcement — i.e. a
+different response shape than the legacy API, not just a new URL.
+
+The new API's docs are a JS-rendered Swagger UI that couldn't be read by
+fetching alone. **Verified from the legacy docs** (for reference only, not
+what to build against): a service's calling points are `locations[]`, with
+`wttBookedArrival`/`wttBookedDeparture` (working timetable, HHmmss),
+`gbttBookedArrival`/`gbttBookedDeparture` (public timetable, HHmm), and
+`realtimeArrival`/`realtimeDeparture` + a same-named `...Actual` boolean for
+live times. **Do not implement `RttProvider` against these legacy field
+names** — get the real new-API schema first (open the Swagger UI in an
+actual browser, or register at api-portal.rtt.io and inspect a real
+response) and update this section with what's actually verified before
+Stage 1's provider implementation is written.
+
+Production migration target once the RTT integration is solid: National
+Rail's Darwin feed via the National Rail Data Portal (JSON) or the newer
+Rail Data Marketplace — the relationship between the two was unclear from
+docs alone as of the research pass; confirm by actually registering before
+relying on either.
 
 ## 4. Live-change handling (must be built, not bolted on later)
 
@@ -89,6 +109,10 @@ Poll interval: roughly every 30–60s while a journey is active.
 
 0. Repo scaffold (this stage).
 1. Journey model & UK provider (RTT) — no UI, tested against fixtures.
+   **Partially done**: `Station`/`Stop`/`Journey`/`Service` model and the
+   `TrainDataProvider` interface are built and unit-tested on both
+   platforms. The concrete `RttProvider` implementation is blocked on
+   getting the real new-API schema — see §3.
 2. Tracking, ETA & live-change logic — no UI, tested against fixtures.
 3. Alarm delivery spike — highest risk, real-device test only, both
    platforms, success = alarm fires locked+silent at a scheduled time.

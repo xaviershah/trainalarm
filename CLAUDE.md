@@ -15,8 +15,10 @@ Full spec: `docs/spec.md`. Read it before starting a new stage of work.
 - Nothing is "done" without something to verify it against: a test, a
   build, or (for UI) a screenshot — never "looks right."
 - Prefer a fresh session per stage rather than one long mixed session.
-- UK rail data source for v1: Realtime Trains (api.rtt.io) — free pull API
-  for non-commercial use. Darwin/National Rail Data Portal is the later
+- UK rail data source for v1: Realtime Trains' new bearer-token API (not
+  the legacy api.rtt.io, which is being shut down 30 Sep 2026). The new
+  API's schema is NOT YET VERIFIED here — see docs/spec.md §3 before
+  writing `RttProvider`. Darwin/National Rail Data Portal is the later
   production migration target (unverified registration process — confirm
   hands-on before relying on it).
 - Alarm delivery is the highest-risk part of this project (see spec §8) —
