@@ -15,12 +15,18 @@ Full spec: `docs/spec.md`. Read it before starting a new stage of work.
 - Nothing is "done" without something to verify it against: a test, a
   build, or (for UI) a screenshot — never "looks right."
 - Prefer a fresh session per stage rather than one long mixed session.
-- UK rail data source for v1: Realtime Trains' new bearer-token API (not
-  the legacy api.rtt.io, which is being shut down 30 Sep 2026). The new
-  API's schema is NOT YET VERIFIED here — see docs/spec.md §3 before
-  writing `RttProvider`. Darwin/National Rail Data Portal is the later
-  production migration target (unverified registration process — confirm
-  hands-on before relying on it).
+- UK rail data source for v1: Realtime Trains' new bearer-token API
+  (not the legacy api.rtt.io, shut down 30 Sep 2026) via `RttProvider`.
+  Real schema is checked into `downloads/RTT.GH.API-spec` at the repo
+  root — read it before touching `RttProvider`/`RttMapper`, don't
+  extend the parser from memory of what's already there. Darwin/
+  National Rail Data Portal is the later production migration target
+  (unverified registration process — confirm hands-on before relying
+  on it).
+- Station name search and GPS coordinates both need a small static
+  UK station dataset (CRS code + name + lat/lon) that doesn't exist
+  yet — RTT's API has neither. Don't invent coordinates or wire up a
+  fake search endpoint in the meantime.
 - Alarm delivery is the highest-risk part of this project (see spec §8) —
   iOS via AlarmKit (requires iOS 26+), Android via foreground service +
   exact-alarm permission. Treat Stage 3 (the alarm delivery spike) as
