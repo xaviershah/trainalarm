@@ -32,6 +32,13 @@ targets:
     platform: iOS
     sources:
       - path: Tests/TrainAlarmTests
+        excludes:
+          - "Fixtures/**"
+      # Folder reference (not a group) so the JSON fixtures keep their
+      # "Fixtures/" subdirectory in the test bundle - RttMapperTests loads
+      # them via Bundle(for:).url(forResource:withExtension:subdirectory:).
+      - path: Tests/TrainAlarmTests/Fixtures
+        type: folder
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
