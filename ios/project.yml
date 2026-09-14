@@ -9,6 +9,8 @@ targets:
     platform: iOS
     sources:
       - path: Sources/TrainAlarm
+        excludes:
+          - "**/README.md"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.trainalarm.app
@@ -30,6 +32,9 @@ targets:
     platform: iOS
     sources:
       - path: Tests/TrainAlarmTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: TrainAlarm
 schemes:
