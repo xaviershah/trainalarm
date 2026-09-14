@@ -15,6 +15,7 @@ targets:
         SWIFT_VERSION: "5.0"
         CODE_SIGN_STYLE: Automatic
     info:
+      path: Generated/Info.plist
       properties:
         UILaunchScreen: {}
         NSLocationWhenInUseUsageDescription: "TrainAlarm needs your location to track your progress along the train route and know when to wake you."

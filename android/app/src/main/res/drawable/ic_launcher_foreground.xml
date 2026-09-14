@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Placeholder mark — a simple train-alarm bell, replaced with real branding in Stage 4. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30 C41,30 34,39 34,50 L34,64 L28,74 L80,74 L74,64 L74,50 C74,39 67,30 54,30 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,80 C46,86 50,90 54,90 C58,90 62,86 62,80 Z" />
+</vector>

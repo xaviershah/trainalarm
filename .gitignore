@@ -4,11 +4,11 @@
 # Xcode / iOS
 ios/build/
 ios/DerivedData/
-ios/*.xcodeproj/xcuserdata/
-ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/*.xcodeproj/
 ios/*.xcworkspace/xcuserdata/
 *.xcuserstate
 ios/.swiftpm/
+ios/Generated/
 
 # Android / Gradle
 android/.gradle/
