@@ -60,4 +60,46 @@ final class RttMapperTests: XCTestCase {
         let service = try RttMapper.fullService(serviceJSON)
         XCTAssertFalse(service.journey.stops.contains { $0.isCancelled })
     }
+
+    func testFullServiceAllStopsCancelledWhenServiceIsCancelled() throws {
+        let fixture = try loadFixture("gb-nr-service-cancelled")
+        let serviceJSON = fixture["service"] as! [String: Any]
+        let service = try RttMapper.fullService(serviceJSON)
+
+        XCTAssertEqual(service.journey.stops.count, 3)
+        XCTAssertTrue(service.journey.stops.allSatisfy { $0.isCancelled })
+        // Cancelled stops still carry their scheduled times - a cancelled
+        // service is not the same as "no data", the alarm/tracking layer
+        // needs the schedule to know what was supposed to happen.
+        let formatter = ISO8601DateFormatter()
+        XCTAssertEqual(service.journey.destinationStop?.scheduledArrival, formatter.date(from: "2026-09-13T09:47:00Z"))
+        // No realtime fields are present on a cancelled stop in this fixture.
+        XCTAssertNil(service.journey.destinationStop?.estimatedArrival)
+    }
+
+    func testFullServiceThrowsOnMissingLocationsField() throws {
+        // A malformed/incomplete response (missing "locations" entirely)
+        // must fail loudly, not silently produce an empty or wrong journey.
+        let fixture = try loadFixture("gb-nr-service-malformed")
+        let serviceJSON = fixture["service"] as! [String: Any]
+        XCTAssertThrowsError(try RttMapper.fullService(serviceJSON)) { error in
+            guard case RttError.malformedResponse = error else {
+                XCTFail("expected RttError.malformedResponse, got \(error)")
+                return
+            }
+        }
+    }
+
+    func testFullServiceDestinationStopIsNilWhenServiceTerminatesEarly() throws {
+        // The service's "destination" field still says Basingstoke, but the
+        // calling pattern only reaches Woking (TERMINATES) - models a real
+        // early-termination/diversion case from docs/spec.md §4.
+        let fixture = try loadFixture("gb-nr-service-destination-dropped")
+        let serviceJSON = fixture["service"] as! [String: Any]
+        let service = try RttMapper.fullService(serviceJSON)
+
+        XCTAssertEqual(service.journey.destination.id, "BSK")
+        XCTAssertEqual(service.journey.stops.count, 2)
+        XCTAssertNil(service.journey.destinationStop)
+    }
 }

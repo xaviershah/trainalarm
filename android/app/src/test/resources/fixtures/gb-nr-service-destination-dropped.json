@@ -1,0 +1,35 @@
+{
+  "service": {
+    "scheduleMetadata": {
+      "uniqueIdentity": "gb-nr:L01528:2026-09-13",
+      "namespace": "gb-nr",
+      "identity": "L01528",
+      "departureDate": "2026-09-13",
+      "operator": { "code": "SW", "name": "South Western Railway" },
+      "modeType": "TRAIN",
+      "inPassengerService": true
+    },
+    "origin": [
+      { "location": { "namespace": "gb-nr", "description": "London Waterloo", "shortCodes": ["WAT"], "longCodes": ["WATRLMN"] } }
+    ],
+    "destination": [
+      { "location": { "namespace": "gb-nr", "description": "Basingstoke", "shortCodes": ["BSK"], "longCodes": ["BASINGS"] } }
+    ],
+    "locations": [
+      {
+        "location": { "namespace": "gb-nr", "description": "London Waterloo", "shortCodes": ["WAT"], "longCodes": ["WATRLMN"] },
+        "temporalData": {
+          "departure": { "scheduleAdvertised": "2026-09-13T10:00:00Z", "realtimeActual": "2026-09-13T10:00:00Z", "isCancelled": false },
+          "displayAs": "CALL"
+        }
+      },
+      {
+        "location": { "namespace": "gb-nr", "description": "Woking", "shortCodes": ["WOK"], "longCodes": ["WOKING"] },
+        "temporalData": {
+          "arrival": { "scheduleAdvertised": "2026-09-13T10:23:00Z", "realtimeActual": "2026-09-13T10:23:00Z", "isCancelled": false },
+          "displayAs": "TERMINATES"
+        }
+      }
+    ]
+  }
+}

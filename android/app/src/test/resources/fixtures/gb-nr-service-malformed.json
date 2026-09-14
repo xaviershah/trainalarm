@@ -1,0 +1,13 @@
+{
+  "service": {
+    "scheduleMetadata": {
+      "uniqueIdentity": "gb-nr:L01527:2026-09-13",
+      "namespace": "gb-nr",
+      "identity": "L01527",
+      "departureDate": "2026-09-13",
+      "operator": { "code": "SW", "name": "South Western Railway" },
+      "modeType": "TRAIN",
+      "inPassengerService": true
+    }
+  }
+}

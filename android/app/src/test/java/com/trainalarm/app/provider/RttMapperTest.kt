@@ -4,6 +4,7 @@ import java.time.Instant
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -59,5 +60,44 @@ class RttMapperTest {
         val fixture = loadFixture("gb-nr-service.json")
         val service = RttMapper.fullService(fixture.getJSONObject("service"))
         assertFalse(service.journey.stops.any { it.isCancelled })
+    }
+
+    @Test
+    fun fullService_allStopsCancelledWhenServiceIsCancelled() {
+        val fixture = loadFixture("gb-nr-service-cancelled.json")
+        val service = RttMapper.fullService(fixture.getJSONObject("service"))
+
+        assertEquals(3, service.journey.stops.size)
+        assertTrue(service.journey.stops.all { it.isCancelled })
+        // Cancelled stops still carry their scheduled times - a cancelled
+        // service is not the same as "no data", the alarm/tracking layer
+        // needs the schedule to know what was supposed to happen.
+        assertEquals(
+            Instant.parse("2026-09-13T09:47:00Z"),
+            service.journey.destinationStop?.scheduledArrival
+        )
+        // No realtime fields are present on a cancelled stop in this fixture.
+        assertEquals(null, service.journey.destinationStop?.estimatedArrival)
+    }
+
+    @Test(expected = org.json.JSONException::class)
+    fun fullService_throwsOnMissingLocationsField() {
+        // A malformed/incomplete response (missing "locations" entirely)
+        // must fail loudly, not silently produce an empty or wrong journey.
+        val fixture = loadFixture("gb-nr-service-malformed.json")
+        RttMapper.fullService(fixture.getJSONObject("service"))
+    }
+
+    @Test
+    fun fullService_destinationStopIsNullWhenServiceTerminatesEarly() {
+        // The service's "destination" field still says Basingstoke, but the
+        // calling pattern only reaches Woking (TERMINATES) - models a real
+        // early-termination/diversion case from docs/spec.md §4.
+        val fixture = loadFixture("gb-nr-service-destination-dropped.json")
+        val service = RttMapper.fullService(fixture.getJSONObject("service"))
+
+        assertEquals("BSK", service.journey.destination.id)
+        assertEquals(2, service.journey.stops.size)
+        assertEquals(null, service.journey.destinationStop)
     }
 }
