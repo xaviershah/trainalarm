@@ -23,3 +23,6 @@ android/.cxx/
 # Environment / secrets
 .env
 *.local.properties
+
+# Claude Code
+.claude/worktrees/

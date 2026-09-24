@@ -1,39 +1,30 @@
-# TrainAlarm — root conventions
+Follow the established feature/bugfix development workflow.
+Project docs are in .ai/.
 
-Full spec: `docs/spec.md`. Read it before starting a new stage of work.
+# TrainAlarm
 
-## Structure
-- `ios/` and `android/` are independent native codebases. No shared code —
-  only the `TrainDataProvider` contract and data model (docs/spec.md §7)
-  are shared *in spec*, each platform implements it separately.
-- Each has its own `CLAUDE.md` with platform-specific commands/conventions.
+Product and technical spec: `docs/spec.md` (source of truth). Platform-specific
+commands and conventions: `ios/CLAUDE.md`, `android/CLAUDE.md`.
 
-## Working style for this project
-- Spec-first per stage: don't start a stage without a short written plan
-  (use Plan Mode). docs/spec.md §9 lists the stages and each one's "ships
-  when" test — treat that line as the actual acceptance criterion.
-- Nothing is "done" without something to verify it against: a test, a
-  build, or (for UI) a screenshot — never "looks right."
-- Prefer a fresh session per stage rather than one long mixed session.
-- UK rail data source for v1: Realtime Trains' new bearer-token API
-  (not the legacy api.rtt.io, shut down 30 Sep 2026) via `RttProvider`.
-  Real schema is checked into `downloads/RTT.GH.API-spec` at the repo
-  root — read it before touching `RttProvider`/`RttMapper`, don't
-  extend the parser from memory of what's already there. Darwin/
-  National Rail Data Portal is the later production migration target
-  (unverified registration process — confirm hands-on before relying
-  on it).
-- Station name search and GPS coordinates both need a small static
-  UK station dataset (CRS code + name + lat/lon) that doesn't exist
-  yet — RTT's API has neither. Don't invent coordinates or wire up a
-  fake search endpoint in the meantime.
-- Alarm delivery is the highest-risk part of this project (see spec §8) —
-  iOS via AlarmKit (requires iOS 26+), Android via foreground service +
-  exact-alarm permission. Treat Stage 3 (the alarm delivery spike) as
-  needing a real device, not a simulator/emulator, for a valid test.
+## Project rules
+
+- Work is organised into stages (docs/spec.md §8). A stage's "ships when" line
+  is its acceptance criterion; put it in the feature spec.
+- Nothing is done without something to verify it: a test, a build, or (for UI)
+  a screenshot. "Looks right" doesn't count.
+- Build every feature on both platforms, in the matching layer (see .ai/architecture.md).
 
 ## Do not
-- Do not invent National Rail / RTT API response shapes — check the real
-  docs/a real response before writing a parser against them.
-- Do not add a shared cross-platform code layer (React Native etc.) —
-  that was a deliberate, considered decision (spec §10), not an oversight.
+
+- Do not invent RTT / National Rail API response shapes. Read the real schema
+  in `downloads/RTT.GH.API-spec` before touching `RttProvider`/`RttMapper`, and
+  don't extend the parser from memory. Don't use the legacy `api.rtt.io`
+  (shut down 30 Sep 2026).
+- Do not invent station coordinates or fake a station-search endpoint. Both
+  wait for a static UK station dataset (CRS + name + lat/lon) that doesn't exist yet.
+- Do not add a shared cross-platform code layer (React Native, Flutter, KMP).
+  Native-only was a deliberate decision (spec §6).
+- Do not treat a simulator or emulator result as a pass for alarm delivery
+  (Stage 3). It needs a real device.
+- Do not rely on Darwin / National Rail Data Portal until registration has
+  been confirmed hands-on.
