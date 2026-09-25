@@ -13,7 +13,7 @@ Rule: nothing is done without something that checks it — a test, a build or
 | Test naming | `test<Behaviour>` (e.g. `testBestArrivalPrefersLiveEstimateOverSchedule`) |
 | Fixtures | `ios/Tests/TrainAlarmTests/Fixtures/*.json`, loaded via `Bundle(for:)` with subdirectory `Fixtures` |
 
-Run it:
+Run it (needs full Xcode 26 — until it is installed locally, iOS tests only run in CI):
 ```bash
 cd ios
 xcodegen generate
