@@ -25,6 +25,10 @@
 | Networking/JSON | `org.json` (platform), no third-party HTTP client |
 | Concurrency | Kotlin coroutines 1.9.0 |
 
+## Tooling
+
+- Python 3, standard library only, for `tools/stations/` (build-time only, not bundled in the apps).
+
 ## External services
 
 - **Realtime Trains API** (bearer token). Schema: `downloads/RTT.GH.API-spec`.

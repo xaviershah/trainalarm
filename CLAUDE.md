@@ -20,8 +20,9 @@ commands and conventions: `ios/CLAUDE.md`, `android/CLAUDE.md`.
   in `downloads/RTT.GH.API-spec` before touching `RttProvider`/`RttMapper`, and
   don't extend the parser from memory. Don't use the legacy `api.rtt.io`
   (shut down 30 Sep 2026).
-- Do not invent station coordinates or fake a station-search endpoint. Both
-  wait for a static UK station dataset (CRS + name + lat/lon) that doesn't exist yet.
+- Do not invent station coordinates: they come only from `data/stations.json`
+  (NaPTAN). Do not fake a station-search endpoint: `RttProvider.searchStations`
+  stays unwired until it is deliberately connected to `StationDirectory`.
 - Do not add a shared cross-platform code layer (React Native, Flutter, KMP).
   Native-only was a deliberate decision (spec §6).
 - Do not treat a simulator or emulator result as a pass for alarm delivery

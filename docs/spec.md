@@ -51,11 +51,14 @@ the full schema):
   `scheduleAdvertised`, `realtimeForecast`, `realtimeEstimate`,
   `realtimeActual`, `isCancelled`).
 - No free-text station search endpoint — resolution from a name a user
-  types to a CRS/TIPLOC code needs a separate static station dataset,
-  not yet built (`searchStations` deliberately throws for now rather
-  than guessing at an endpoint that doesn't exist).
-- `GeographicLocation` has no coordinates — GPS lat/lon also needs that
-  same separate static station dataset once built.
+  types to a CRS/TIPLOC code needs a static station dataset. It is now
+  built: `data/stations.json` (2,626 Great Britain stations from NaPTAN
+  under OGL v3.0, see `data/STATIONS-SOURCE.md`), loaded by
+  `StationDirectory` on both platforms. Still to do: wiring
+  `RttProvider.searchStations` to it (it deliberately throws for now
+  rather than guessing at an endpoint that doesn't exist).
+- `GeographicLocation` has no coordinates — GPS lat/lon comes from that
+  same station dataset (`StationDirectory`), not from RTT.
 
 Production migration target once the RTT integration is proven out:
 National Rail's Darwin feed via the National Rail Data Portal (free
@@ -118,10 +121,13 @@ Poll interval: roughly every 30–60s while a journey is active.
    `Service` model, `TrainDataProvider` interface, and a concrete
    `RttProvider` (departure board + full service lookup) on both
    platforms, all unit-tested against a fixture built from RTT's real
-   verified schema (§3). Not yet done: resolving a free-text station name
-   to a CRS code, and station coordinates for GPS — both need a separate
-   static station dataset (a small, known follow-up, not a schema
-   question).
+   verified schema (§3). The station dataset is now built (`data/stations.json`,
+   2,626 GB stations from NaPTAN under OGL v3.0, with `StationDirectory`
+   on both platforms for CRS lookup, name search and coordinates). Not yet
+   done: wiring `RttProvider.searchStations` to the directory, and showing
+   the OGL attribution in the app UI (UI stage). Known gaps: 11 Elizabeth
+   line codes (e.g. PDX, FDX) have no NaPTAN coordinates and are absent;
+   names are NaPTAN's (e.g. "Edinburgh", not "Edinburgh Waverley").
 2. Tracking, ETA & live-change logic — no UI, tested against fixtures.
 3. Alarm delivery spike — highest risk, real-device test only, both
    platforms, success = alarm fires locked+silent at a scheduled time.

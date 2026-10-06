@@ -11,6 +11,8 @@ TrainAlarm/
 │   └── Tests/TrainAlarmTests/{Model,Provider,Fixtures}/
 ├── android/             Native Android app (Kotlin/Compose)
 │   └── app/src/{main,test}/java/com/trainalarm/app/{model,provider,tracking,alarm}/
+├── data/                stations.json (UK station dataset, NaPTAN) + STATIONS-SOURCE.md
+├── tools/stations/      Python generator + sync scripts for stations.json (build-time only)
 ├── docs/spec.md         Product + technical spec, stage plan (§8)
 ├── downloads/RTT.GH.API-spec   Real RTT API schema — read before touching the parser
 └── .github/workflows/   ios.yml, android.yml (CI)
@@ -24,6 +26,7 @@ One folder/package per architectural layer, identical on both platforms:
 |---|---|---|---|
 | Data model (`Station`, `Stop`, `Service`, `Journey`) | `Models/` | `model/` | 1 (done) |
 | Rail data (`TrainDataProvider` + `RttProvider`) | `Providers/` | `provider/` | 1 (done) |
+| Station directory (`StationDirectory`: CRS lookup, name search) | `Providers/` | `provider/` | done |
 | Tracking, ETA, live-change logic | `Tracking/` | `tracking/` | 2 |
 | Alarm delivery | `Alarm/` | `alarm/` | 3 |
 | UI / app entry | `App/` | package root | 4 |
@@ -47,7 +50,6 @@ A new feature is built on **both** platforms, in the matching layer.
 
 ## TBD
 
-- Static UK station dataset (CRS + name + lat/lon) — source and location in repo.
 - State management / UI architecture pattern (MVVM etc.) — decide at Stage 4.
 - Dependency injection approach.
 - Minimum iOS version acceptability (spec §7).
