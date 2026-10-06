@@ -1,4 +1,7 @@
 import io
+import json
+import os
+import tempfile
 import unittest
 
 import generate_stations as gs
@@ -146,6 +149,74 @@ class SelectRecordsTests(unittest.TestCase):
         ])
         self.assertEqual([s["crs"] for s in stations], ["EDB", "MAN"])
         self.assertEqual((stations[1]["lat"], stations[1]["lon"]), (53.477361, -2.23091))
+
+
+GOOD = [
+    {"crs": "KGX", "name": "London Kings Cross", "lat": 51.530883, "lon": -0.122926},
+    {"crs": "MAN", "name": "Manchester Piccadilly", "lat": 53.477361, "lon": -2.23091},
+]
+
+
+class ValidateTests(unittest.TestCase):
+    def check(self, stations, count_range=(1, 10), expected=None):
+        gs.validate(stations, count_range=count_range, expected=expected or {})
+
+    def test_accepts_valid_stations(self):
+        self.check(GOOD)
+
+    def test_rejects_count_out_of_range(self):
+        with self.assertRaisesRegex(gs.ValidationError, "count 2"):
+            self.check(GOOD, count_range=(100, 200))
+
+    def test_rejects_malformed_crs(self):
+        for bad in ("kgx", "KGXX", "K1X"):
+            with self.subTest(bad=bad), self.assertRaisesRegex(gs.ValidationError, "bad CRS"):
+                self.check([{**GOOD[0], "crs": bad}])
+
+    def test_rejects_duplicate_crs(self):
+        with self.assertRaisesRegex(gs.ValidationError, "duplicate CRS KGX"):
+            self.check([GOOD[0], GOOD[0]])
+
+    def test_rejects_coordinates_outside_the_uk(self):
+        with self.assertRaisesRegex(gs.ValidationError, "outside the UK"):
+            self.check([{**GOOD[0], "lat": 0.0, "lon": 0.0}])
+
+    def test_rejects_empty_name(self):
+        with self.assertRaisesRegex(gs.ValidationError, "empty name"):
+            self.check([{**GOOD[0], "name": ""}])
+
+    def test_rejects_wrong_or_missing_spot_check_name(self):
+        with self.assertRaisesRegex(gs.ValidationError, "EDB"):
+            self.check(GOOD, expected={"EDB": "Edinburgh"})
+
+
+class WriteJsonTests(unittest.TestCase):
+    def test_one_record_per_line_utf8_and_round_trips(self):
+        stations = GOOD + [{"crs": "HRW", "name": "Harrow & Wealdstone", "lat": 51.592169, "lon": -0.334571}]
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "stations.json")
+            gs.write_json(stations, path)
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+        lines = text.split("\n")
+        self.assertEqual(lines[0], "[")
+        self.assertEqual(lines[1], '{"crs": "KGX", "name": "London Kings Cross", "lat": 51.530883, "lon": -0.122926},')
+        self.assertEqual(lines[-3], '{"crs": "HRW", "name": "Harrow & Wealdstone", "lat": 51.592169, "lon": -0.334571}')
+        self.assertEqual(lines[-2:], ["]", ""])
+        self.assertEqual(json.loads(text), stations)
+
+
+class BuildTests(unittest.TestCase):
+    def test_builds_validated_stations_from_xml(self):
+        source = doc(stop("9100KNGX", "KGX", "London Kings Cross Rail Station", "51.53088", "-0.12292"))
+        stations, report = gs.build(source, {}, count_range=(1, 5), expected={"KGX": "London Kings Cross"})
+        self.assertEqual(stations, [{"crs": "KGX", "name": "London Kings Cross", "lat": 51.53088, "lon": -0.12292}])
+        self.assertEqual(report["inactive"], [])
+
+    def test_build_fails_validation_rather_than_returning_bad_data(self):
+        source = doc(stop("9100KNGX", "KGX", "London Kings Cross Rail Station"))
+        with self.assertRaises(gs.ValidationError):
+            gs.build(source, {}, count_range=(100, 200), expected={})
 
 
 if __name__ == "__main__":
