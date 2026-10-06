@@ -36,12 +36,20 @@ cd android
 ./gradlew lint
 ```
 
+## Station tools (Python)
+
+```bash
+python3 -m unittest discover -s tools/stations -p "test_*.py" -v
+```
+
 ## Shared rules
 
 - Fixtures are the **same files on both platforms** (`gb-nr-service*.json`), built
   from RTT's real schema. If you add one, add it to both.
 - Test against the `TrainDataProvider` contract and the model types. Tracking
   and ETA logic (Stage 2) is tested with fixtures only, without UI or network.
+- `stations.json` is bundled on both platforms; each platform's `StationDirectory`
+  tests assert the bundled copy equals `data/stations.json`.
 - CI runs both suites on every push/PR that touches that platform.
 - **Alarm delivery (Stage 3) needs a real device**, not a simulator or emulator.
   It passes when the alarm fires while the phone is locked and silenced.

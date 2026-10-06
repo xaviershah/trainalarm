@@ -1,0 +1,27 @@
+name: Station tools CI
+
+on:
+  push:
+    paths:
+      - "tools/stations/**"
+      - "data/**"
+      - "ios/Sources/TrainAlarm/Resources/**"
+      - "android/app/src/main/assets/**"
+      - ".github/workflows/stations.yml"
+  pull_request:
+    paths:
+      - "tools/stations/**"
+      - "data/**"
+      - "ios/Sources/TrainAlarm/Resources/**"
+      - "android/app/src/main/assets/**"
+      - ".github/workflows/stations.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generator and sync tests
+        run: python3 -m unittest discover -s tools/stations -p "test_*.py" -v
+      - name: Bundled copies match data/stations.json
+        run: python3 tools/stations/sync_stations.py --check

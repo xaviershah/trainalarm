@@ -1,0 +1,12 @@
+{
+  "BIA": {"atco": "9100BSAUKLD", "reason": "Two names for one CRS, about 270 m apart: 'Bishop Auckland' vs 'Bishop Auckland West'. Chose the unqualified name."},
+  "SGB": {"atco": "9100GALTILL", "reason": "Same spot, 'Smethwick Galton Bridge' vs '... High Level'. Chose the unqualified name."},
+  "NRC": {"atco": "9100NEWBRYR", "reason": "Genuinely different places: Newbury Park (Essex, 9100ILFENBP) vs Newbury Racecourse (Berkshire). NRC is the Newbury Racecourse code; the Newbury Park record is a NaPTAN mislabel."},
+  "LVC": {"atco": "9100LVRPLCH", "reason": "'Liverpool Central' vs 'Liverpool Central Loop Line'. Chose the main station name."},
+  "NXG": {"atco": "9100NEWXGTE", "reason": "'New Cross Gate' vs 'New Cross Gate ELL' (East London Line variant). Chose the unqualified name."},
+  "NWX": {"atco": "9100NWCROSS", "reason": "'New Cross' vs 'New Cross ELL' (East London Line variant). Chose the unqualified name."},
+  "RMD": {"atco": "9100RICHMND", "reason": "'Richmond (London)' vs 'Richmond NLL' (North London Line variant). Chose the unqualified name."},
+  "SHT": {"atco": "9100SHOTTON", "reason": "'Shotton' vs 'Shotton High Level'. Chose the unqualified name."},
+  "WIJ": {"atco": "9100WLSDJHL", "reason": "'Willesden Junction' vs 'Willesden Junction Low Level'. Chose the unqualified name."},
+  "ZZT": {"atco": null, "reason": "Groups three unrelated places (Alston, Kirkhaugh, Lintley); not a real station code. Dropped."}
+}

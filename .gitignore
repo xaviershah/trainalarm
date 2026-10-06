@@ -24,5 +24,9 @@ android/.cxx/
 .env
 *.local.properties
 
+# Station generator downloads
+tools/stations/.cache/
+__pycache__/
+
 # Claude Code
 .claude/worktrees/
