@@ -953,7 +953,7 @@ class StationDirectoryTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `cd android && ./gradlew test --tests "com.trainalarm.app.provider.StationDirectoryTest"`
+Run: `cd android && ./gradlew testDebugUnitTest --tests "com.trainalarm.app.provider.StationDirectoryTest"` (the plain `test` task does not accept `--tests`)
 Expected: compilation FAILS with `Unresolved reference: StationDirectory`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -1012,7 +1012,7 @@ class StationDirectory private constructor(val stations: List<Station>) {
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `cd android && ./gradlew test --tests "com.trainalarm.app.provider.StationDirectoryTest"` — expected 14 tests PASS.
+Run: `cd android && ./gradlew testDebugUnitTest --tests "com.trainalarm.app.provider.StationDirectoryTest"` — expected 14 tests PASS.
 Run: `cd android && ./gradlew test lint` — expected BUILD SUCCESSFUL (existing tests still pass).
 
 - [ ] **Step 5: Commit**
@@ -1275,9 +1275,9 @@ git diff --cached --stat
 git commit -m "Feature: Add iOS StationDirectory and station CI" -m "Mirrors the Android directory; CI also reruns on data changes and checks the bundled copies match." -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 git push
 gh run list --branch feature/uk-station-list --limit 5
-gh run watch   # pick the iOS run
+gh run watch <run-id> --exit-status   # run once per workflow, using the ids from the list above
 ```
-Expected: iOS CI, Android CI and Station tools CI all green. If iOS fails with `resourceMissing`, XcodeGen did not bundle the JSON: add `buildPhase: resources` to the source entry for `Sources/TrainAlarm/Resources` in `ios/project.yml`, regenerate, push again. If it fails for any other reason, invoke `superpowers:systematic-debugging`; do not weaken a test.
+`gh run watch` without an id prompts interactively, so always pass the run id. Expected: iOS CI, Android CI and Station tools CI all green. If iOS fails with `resourceMissing`, XcodeGen did not bundle the JSON: add `buildPhase: resources` to the source entry for `Sources/TrainAlarm/Resources` in `ios/project.yml`, regenerate, push again. If it fails for any other reason, invoke `superpowers:systematic-debugging`; do not weaken a test.
 
 ---
 
