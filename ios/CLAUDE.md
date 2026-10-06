@@ -8,8 +8,8 @@ sources are folder-referenced — no manual project-file editing needed.
 ## Commands
 - Regenerate project: `xcodegen generate` (from `ios/`)
 - Build/test: via Xcode, or `xcodebuild -scheme TrainAlarm test` once the
-  project is generated (needs a real Mac with Xcode — not this linked
-  session's shell).
+  project is generated (needs a Mac with Xcode 26; see `.ai/testing-guide.md`
+  for the full command and simulator choice).
 
 ## Conventions
 - One folder per architectural layer (`Models`, `Providers`, `Tracking`,

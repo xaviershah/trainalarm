@@ -13,12 +13,13 @@ Rule: nothing is done without something that checks it — a test, a build or
 | Test naming | `test<Behaviour>` (e.g. `testBestArrivalPrefersLiveEstimateOverSchedule`) |
 | Fixtures | `ios/Tests/TrainAlarmTests/Fixtures/*.json`, loaded via `Bundle(for:)` with subdirectory `Fixtures` |
 
-Run it (needs full Xcode 26 — until it is installed locally, iOS tests only run in CI):
+Run it (needs full Xcode 26; CI runs the same tests on every push/PR that touches `ios/`):
 ```bash
 cd ios
 xcodegen generate
-xcodebuild test -scheme TrainAlarm -destination "platform=iOS Simulator,name=iPhone 16"
+xcodebuild test -scheme TrainAlarm -destination "platform=iOS Simulator,name=<an installed iPhone>"
 ```
+List installed simulators with `xcrun simctl list devices available iPhone` (the name varies by Xcode version; CI picks one automatically).
 
 ## Android
 
