@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "ios/**"
+      - "data/**"
       - ".github/workflows/ios.yml"
   pull_request:
     paths:
       - "ios/**"
+      - "data/**"
       - ".github/workflows/ios.yml"
 
 jobs:
