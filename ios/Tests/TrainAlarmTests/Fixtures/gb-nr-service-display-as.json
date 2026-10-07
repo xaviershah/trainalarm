@@ -1,0 +1,64 @@
+{
+  "service": {
+    "scheduleMetadata": {
+      "uniqueIdentity": "gb-nr:L01530:2026-09-13",
+      "namespace": "gb-nr",
+      "identity": "L01530",
+      "departureDate": "2026-09-13",
+      "operator": { "code": "SW", "name": "South Western Railway" },
+      "modeType": "TRAIN",
+      "inPassengerService": true
+    },
+    "origin": [
+      { "location": { "namespace": "gb-nr", "description": "London Waterloo", "shortCodes": ["WAT"], "longCodes": ["WATRLMN"] } }
+    ],
+    "destination": [
+      { "location": { "namespace": "gb-nr", "description": "Basingstoke", "shortCodes": ["BSK"], "longCodes": ["BASINGS"] } }
+    ],
+    "locations": [
+      {
+        "location": { "namespace": "gb-nr", "description": "London Waterloo", "shortCodes": ["WAT"], "longCodes": ["WATRLMN"] },
+        "temporalData": {
+          "departure": { "scheduleAdvertised": "2026-09-13T12:00:00Z", "realtimeActual": "2026-09-13T12:00:00Z", "isCancelled": false },
+          "displayAs": "CALL"
+        }
+      },
+      {
+        "location": { "namespace": "gb-nr", "description": "Clapham Junction", "shortCodes": ["CLJ"], "longCodes": ["CLPHMJN"] },
+        "temporalData": {
+          "pass": { "scheduleAdvertised": "2026-09-13T12:08:00Z", "realtimeForecast": "2026-09-13T12:09:00Z", "isCancelled": false },
+          "displayAs": "PASS"
+        }
+      },
+      {
+        "location": { "namespace": "gb-nr", "description": "Surbiton", "shortCodes": ["SUR"], "longCodes": ["SURBITN"] },
+        "temporalData": {
+          "arrival": { "scheduleAdvertised": "2026-09-13T12:17:00Z", "realtimeForecast": "2026-09-13T12:18:00Z", "isCancelled": false },
+          "displayAs": "DIVERTED"
+        }
+      },
+      {
+        "location": { "namespace": "gb-nr", "description": "Woking", "shortCodes": ["WOK"], "longCodes": ["WOKING"] },
+        "temporalData": {
+          "arrival": { "scheduleAdvertised": "2026-09-13T12:23:00Z", "isCancelled": true, "cancellationReasonCode": "TB" },
+          "departure": { "scheduleAdvertised": "2026-09-13T12:24:00Z", "isCancelled": true, "cancellationReasonCode": "TB" },
+          "displayAs": "CANCELLED"
+        }
+      },
+      {
+        "location": { "namespace": "gb-nr", "description": "Winchester", "shortCodes": ["WIN"], "longCodes": ["WNCHSTR"] },
+        "temporalData": {
+          "arrival": { "scheduleAdvertised": "2026-09-13T12:40:00Z", "isCancelled": false },
+          "displayAs": "FUTURE_VALUE"
+        }
+      },
+      {
+        "location": { "namespace": "gb-nr", "description": "Basingstoke", "shortCodes": ["BSK"], "longCodes": ["BASINGS"] },
+        "temporalData": {
+          "arrival": { "scheduleAdvertised": "2026-09-13T12:47:00Z", "realtimeActual": "2026-09-13T12:48:00Z", "isCancelled": false },
+          "displayAs": "TERMINATES"
+        }
+      }
+    ]
+  }
+}

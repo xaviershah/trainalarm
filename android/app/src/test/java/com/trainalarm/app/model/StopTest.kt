@@ -2,6 +2,9 @@ package com.trainalarm.app.model
 
 import java.time.Instant
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class StopTest {
@@ -20,5 +23,23 @@ class StopTest {
         val scheduled = Instant.parse("2026-09-13T08:00:00Z")
         val stop = Stop(reading, scheduled, scheduled, null, null)
         assertEquals(scheduled, stop.bestArrival)
+    }
+
+    @Test
+    fun isCancelled_isFalseByDefault() {
+        val stop = Stop(reading, null, null, null, null)
+        assertFalse(stop.isArrivalCancelled)
+        assertFalse(stop.isDepartureCancelled)
+        assertFalse(stop.isCancelled)
+        assertNull(stop.displayAs)
+        assertFalse(stop.hasArrived)
+    }
+
+    @Test
+    fun isCancelled_isTrueWhenOnlyDepartureIsCancelled() {
+        val stop = Stop(reading, null, null, null, null, isDepartureCancelled = true)
+        assertFalse(stop.isArrivalCancelled)
+        assertTrue(stop.isDepartureCancelled)
+        assertTrue(stop.isCancelled)
     }
 }
