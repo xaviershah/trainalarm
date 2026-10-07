@@ -17,5 +17,6 @@ protocol TrainDataProvider {
     /// The full stop-by-stop detail for one specific service, including live
     /// times where available. Called both to select a journey and,
     /// repeatedly, to poll for changes while a journey is active (§4).
+    /// `date` is currently ignored: `serviceId` already identifies the day. Reuse `service.id` when polling.
     func serviceDetails(serviceId: String, date: Date) async throws -> Service
 }

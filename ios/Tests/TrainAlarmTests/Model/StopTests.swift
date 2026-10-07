@@ -16,4 +16,20 @@ final class StopTests: XCTestCase {
         let stop = Stop(station: reading, scheduledArrival: scheduled, scheduledDeparture: scheduled, estimatedArrival: nil, estimatedDeparture: nil)
         XCTAssertEqual(stop.bestArrival, scheduled)
     }
+
+    func testIsCancelledIsFalseByDefault() {
+        let stop = Stop(station: reading, scheduledArrival: nil, scheduledDeparture: nil, estimatedArrival: nil, estimatedDeparture: nil)
+        XCTAssertFalse(stop.isArrivalCancelled)
+        XCTAssertFalse(stop.isDepartureCancelled)
+        XCTAssertFalse(stop.isCancelled)
+        XCTAssertNil(stop.displayAs)
+        XCTAssertFalse(stop.hasArrived)
+    }
+
+    func testIsCancelledIsTrueWhenOnlyDepartureIsCancelled() {
+        let stop = Stop(station: reading, scheduledArrival: nil, scheduledDeparture: nil, estimatedArrival: nil, estimatedDeparture: nil, isDepartureCancelled: true)
+        XCTAssertFalse(stop.isArrivalCancelled)
+        XCTAssertTrue(stop.isDepartureCancelled)
+        XCTAssertTrue(stop.isCancelled)
+    }
 }

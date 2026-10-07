@@ -120,8 +120,13 @@ Poll interval: roughly every 30–60s while a journey is active.
 1. Journey model & UK provider (RTT) — DONE. `Station`/`Stop`/`Journey`/
    `Service` model, `TrainDataProvider` interface, and a concrete
    `RttProvider` (departure board + full service lookup) on both
-   platforms, all unit-tested against a fixture built from RTT's real
-   verified schema (§3). The station dataset is now built (`data/stations.json`,
+   platforms, unit-tested against fixtures built from RTT's real verified
+   schema (§3), including the departure board (no real captured RTT
+   responses are in the repo yet). A pre-Stage-2 audit added a typed
+   `ProviderError` (network / http / malformed / notImplemented) shared by
+   both platforms, per-activity cancellation, `displayAs` and `hasArrived`
+   on `Stop`, 10s Android timeouts, and HTTP 204 handling (an empty
+   departure board). The station dataset is now built (`data/stations.json`,
    2,626 GB stations from NaPTAN under OGL v3.0, with `StationDirectory`
    on both platforms for CRS lookup, name search and coordinates). Not yet
    done: wiring `RttProvider.searchStations` to the directory, and showing
