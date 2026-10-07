@@ -14,27 +14,29 @@ types, never on `RttProvider` or raw RTT JSON.
 Built on both platforms in the matching layer: `ios/Sources/TrainAlarm/Tracking/`
 and `android/app/src/main/java/com/trainalarm/app/tracking/`.
 
-## Prerequisite: Stage 1 fixes (separate PR, lands first)
+## Prerequisite: Stage 1 fixes (DONE: PR #7, merged 2026-10-07, commit 98fa4c2)
 
-Stage 2 is built on these. They are specified here so both PRs agree on the shapes.
+Stage 2 is built on these. They are on `main` and match the shapes this spec uses.
 
 - **Typed provider errors, identical on both platforms.** `ProviderError`:
-  `network`, `http(code)`, `malformed(reason)`, `notImplemented`. Providers wrap the
-  platform errors (`URLError`, `IOException`, `JSONSerialization`/`JSONException`
-  failures) into it. A 404 is just `http(404)`; the tracker does not treat a gone
-  service specially, it is an outage and the UI decides what to show.
-- **Per-activity cancellation and `displayAs` on `Stop`.** Add `isArrivalCancelled`,
-  `isDepartureCancelled` (existing `isCancelled` stays, derived as their OR), and
-  `displayAs` with cases `call`, `cancelled`, `diverted`, `starts`, `terminates`,
-  `pass`, plus `unknown` for unrecognised strings and nil when absent. Values are the
-  schema's `LocationDisplayAs` (`downloads/RTT.GH.API-spec:197-210`). Add
-  `hasArrived` (true when the arrival has `realtimeActual`).
-- **Android HTTP timeouts** (10s connect and read).
-- `docs/spec.md` §8: correct the "all unit-tested" claim, or add `departureBoard`
-  fixture and mapper tests.
-- New fixtures, on both platforms: destination with only departure cancelled;
-  destination with `displayAs` DIVERTED, CANCELLED and PASS; an explicit-null
-  realtime field; a stop with `realtimeActual` on arrival.
+  `network(message)`, `http(code)`, `malformed(reason)`, `notImplemented(message)`
+  (Kotlin `Network`, `Http`, `Malformed`, `NotImplemented`). A provider call ends in a
+  result, a `ProviderError`, or a cancellation (`CancellationError` /
+  `CancellationException`, never wrapped). A 404 is just `http(404)`; the tracker does
+  not treat a gone service specially, it is an outage and the UI decides what to show.
+  HTTP 204 from the departure board is an empty list; 204 or an empty body from the
+  service lookup is `malformed`.
+- **`Stop`** has `isArrivalCancelled`, `isDepartureCancelled` (`isCancelled` is their
+  OR), `displayAs` (`call`, `cancelled`, `diverted`, `starts`, `terminates`, `pass`,
+  `unknown`; nil when absent or JSON null) and `hasArrived` (the arrival has a parseable
+  `realtimeActual`). Values are the schema's `LocationDisplayAs`
+  (`downloads/RTT.GH.API-spec:197-218`). The `pass` activity is not mapped, so a PASS
+  stop has nil arrival and departure.
+- **Android**: injectable `HttpTransport` with 10s connect and read timeouts; JSON nulls
+  map to null (`optStringOrNull`).
+- Schema-built fixtures on both platforms (not captured from the live API):
+  `gb-nr-service-departure-cancelled.json`, `gb-nr-service-display-as.json`,
+  `gb-nr-service-nulls.json`, `gb-nr-location.json`.
 
 ## Acceptance criterion ("ships when")
 
@@ -48,15 +50,16 @@ real-device work is involved.
 
 ## Verified facts (read from the repo, not assumed)
 
-- Existing fixtures, identical on both platforms: `gb-nr-service.json` (destination
+- Fixtures, identical on both platforms (`ios/Tests/TrainAlarmTests/Fixtures`,
+  `android/app/src/test/resources/fixtures`): `gb-nr-service.json` (destination
   scheduled 08:47, estimate 08:52, +5 min), `gb-nr-service-cancelled.json` (all stops
-  cancelled), `gb-nr-service-destination-dropped.json`, `gb-nr-service-malformed.json`.
-  Every fixture time is on a whole minute.
+  cancelled), `gb-nr-service-destination-dropped.json`, `gb-nr-service-malformed.json`,
+  plus the four from PR #7 listed above. Every fixture time is on a whole minute.
 - The mapper gives every `Station` latitude 0 and longitude 0
-  (`RttProvider.swift:89-90`, `RttProvider.kt:101-102`). Real coordinates exist only in
+  (`RttProvider.swift:112-113`, `RttProvider.kt:119-120`). Real coordinates exist only in
   `StationDirectory` (`data/stations.json`). Provider stations are matched by `id`.
 - `Journey.destination` is the service's own terminus, not the user's alighting
-  station (`RttProvider.swift:182-184`).
+  station (`RttProvider.swift:222`, `RttProvider.kt:227`).
 - `serviceDetails(serviceId:date:)` ignores `date`; the service id already embeds it
   (`gb-nr:L01525:2026-09-13`), so reusing `service.id` makes midnight rollover a
   non-issue.
@@ -67,6 +70,14 @@ real-device work is involved.
   `destinationLost` on it alone.
 - Android has `kotlinx-coroutines-android` 1.9.0 (core comes in transitively) but no
   `kotlinx-coroutines-test`. This design does not add it.
+- Android `HttpURLConnection` reads block uninterruptibly (up to the 10s timeout), so
+  coroutine cancellation, and therefore `stop()`, can lag by up to about 10s on Android.
+  A fake transport in tests cannot show this.
+- `Journey` construction throws a non-`ProviderError` on an empty stop list
+  (`JourneyError.noStops` / `IllegalArgumentException`). Both mappers guard that first, so
+  the tracker never sees it from `RttProvider`, but a future provider might. iOS
+  `getJSON` also catches only `URLError`. The tracker therefore classifies any
+  non-`ProviderError` error as failure kind `other`, as already specified.
 - Not verified: real GPS behaviour on a moving train. The outage fallback is
   deliberately conservative and is to be revisited in Stage 5 with real-device data.
 
@@ -272,6 +283,8 @@ background execution (Stage 5), wiring `RttProvider.searchStations`.
 
 - `docs/spec.md` §8: add the Stage 2 "ships when" line and mark it done; §4 threshold
   wording from "~>60s" to ">=60s".
-- `.ai/tech-stack.md`: the typed error (no longer TBD). `.ai/architecture.md`: Tracking
-  row status. `.ai/testing-guide.md`: hand-written fakes as the mocking approach.
-- `README.md` status line (still says Stage 0 and cites a §9 that does not exist).
+- `.ai/architecture.md`: Tracking row status. `.ai/testing-guide.md`: hand-written fakes
+  for the tracker (provider, clock, location source, alarm scheduler) as the mocking
+  approach. `README.md`: status line (Stage 2 done; PR #7 already corrected it to
+  "Stage 1 done, Stage 2 next"). `.ai/tech-stack.md` and the typed-error docs were
+  already updated by PR #7.
