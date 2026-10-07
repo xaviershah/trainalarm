@@ -1,0 +1,50 @@
+{
+  "query": {
+    "location": { "namespace": "gb-nr", "description": "London Waterloo", "shortCodes": ["WAT"], "longCodes": ["WATRLMN"] },
+    "timeFrom": "2026-09-13T14:00:00Z"
+  },
+  "services": [
+    {
+      "scheduleMetadata": {
+        "uniqueIdentity": "gb-nr:L02001:2026-09-13",
+        "namespace": "gb-nr",
+        "identity": "L02001",
+        "departureDate": "2026-09-13",
+        "operator": { "code": "SW", "name": "South Western Railway" },
+        "modeType": "TRAIN",
+        "inPassengerService": true
+      },
+      "temporalData": {
+        "departure": { "scheduleAdvertised": "2026-09-13T14:00:00Z", "realtimeForecast": "2026-09-13T14:02:00Z", "isCancelled": false },
+        "displayAs": "CALL"
+      },
+      "origin": [
+        { "location": { "namespace": "gb-nr", "description": "London Waterloo", "shortCodes": ["WAT"], "longCodes": ["WATRLMN"] } }
+      ],
+      "destination": [
+        { "location": { "namespace": "gb-nr", "description": "Basingstoke", "shortCodes": ["BSK"], "longCodes": ["BASINGS"] } }
+      ]
+    },
+    {
+      "scheduleMetadata": {
+        "uniqueIdentity": "gb-nr:L02002:2026-09-13",
+        "namespace": "gb-nr",
+        "identity": "L02002",
+        "departureDate": "2026-09-13",
+        "operator": { "code": "SW", "name": "South Western Railway" },
+        "modeType": "TRAIN",
+        "inPassengerService": true
+      },
+      "temporalData": {
+        "departure": { "scheduleAdvertised": "2026-09-13T14:30:00Z", "isCancelled": true, "cancellationReasonCode": "TB" },
+        "displayAs": "CANCELLED"
+      },
+      "origin": [
+        { "location": { "namespace": "gb-nr", "description": "London Waterloo", "shortCodes": ["WAT"], "longCodes": ["WATRLMN"] } }
+      ],
+      "destination": [
+        { "location": { "namespace": "gb-nr", "description": "Southampton Central", "shortCodes": ["SOU"], "longCodes": ["SOTON"] } }
+      ]
+    }
+  ]
+}

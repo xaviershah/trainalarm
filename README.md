@@ -23,8 +23,9 @@ shared. Each platform is a fully separate native codebase.
 
 ## Status
 
-Stage 0 — repo scaffold. See `docs/spec.md` §9 (Development project plan)
-for the full stage list.
+Stage 1 done (journey model, UK provider, station data); Stage 2 (tracking,
+ETA and live-change logic) is next. See `docs/spec.md` §8 for the full stage
+list.
 
 ## Station data
 

@@ -45,7 +45,7 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
 
 ## Shared rules
 
-- Fixtures are the **same files on both platforms** (`gb-nr-service*.json`), built
+- Fixtures are the **same files on both platforms** (`gb-nr-*.json`), built
   from RTT's real schema. If you add one, add it to both.
 - Test against the `TrainDataProvider` contract and the model types. Tracking
   and ETA logic (Stage 2) is tested with fixtures only, without UI or network.
@@ -54,9 +54,15 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
 - CI runs both suites on every push/PR that touches that platform.
 - **Alarm delivery (Stage 3) needs a real device**, not a simulator or emulator.
   It passes when the alarm fires while the phone is locked and silenced.
+- **Provider network tests** use no mocking library: iOS passes an ephemeral
+  `URLSession` whose `protocolClasses` is a `URLProtocol` stub
+  (`StubURLProtocol`) to `RttProvider`; Android passes a fake `HttpTransport`.
+- In a fresh git worktree `android/local.properties` is absent (it is
+  gitignored), so run Gradle with the SDK path set:
+  `ANDROID_HOME=$HOME/Library/Android/sdk ./gradlew test --offline`.
 
 ## TBD
 
 - Instrumented/UI tests (`androidTest`, XCUITest) — none yet; decide at Stage 4.
 - Code coverage target.
-- Mocking approach for `TrainDataProvider` (hand-written fakes are the likely default).
+- Mocking approach for `TrainDataProvider` itself (Stage 2 will use hand-written fakes).

@@ -38,12 +38,14 @@
 ## Error handling
 
 - Provider methods are `async throws` (iOS) / `suspend` (Android).
-- iOS: typed `RttError` enum — `httpError(code)`, `malformedResponse(reason)`,
-  `notImplemented`. Parsers throw on a missing required field; they don't
-  return partial data.
-- Android: no typed error class yet; relies on platform exceptions
-  (`JSONException`, `IOException`). **TBD:** add a matching sealed error type
-  so both platforms fail the same way.
+- Both platforms: a typed `ProviderError` — `network`, `http(code)`,
+  `malformed(reason)`, `notImplemented`. Mappers throw `malformed` on a
+  missing required field or an empty `locations` array; they don't return
+  partial data. Cancellation is never wrapped (`CancellationError` /
+  `CancellationException` propagate). HTTP 204 from the departure board is an
+  empty list, not an error.
+- Android requests have 10s connect and read timeouts; `HttpTransport` is
+  injectable so the provider can be tested without a network.
 - Live-change handling (cancellations, dropped stops, delays) is modelled as
   data, not as errors (spec §4).
 
