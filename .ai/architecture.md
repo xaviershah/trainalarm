@@ -8,7 +8,7 @@ Source of truth: `docs/spec.md`. This file is the short version.
 TrainAlarm/
 ├── ios/                 Native iOS app (Swift/SwiftUI), XcodeGen project
 │   ├── Sources/TrainAlarm/{App,Models,Providers,Tracking,Alarm}/
-│   └── Tests/TrainAlarmTests/{Model,Provider,Fixtures}/
+│   └── Tests/TrainAlarmTests/{Model,Provider,Tracking,Fixtures}/
 ├── android/             Native Android app (Kotlin/Compose)
 │   └── app/src/{main,test}/java/com/trainalarm/app/{model,provider,tracking,alarm}/
 ├── data/                stations.json (UK station dataset, NaPTAN) + STATIONS-SOURCE.md
@@ -27,8 +27,8 @@ One folder/package per architectural layer, identical on both platforms:
 | Data model (`Station`, `Stop`, `Service`, `Journey`) | `Models/` | `model/` | 1 (done) |
 | Rail data (`TrainDataProvider` + `RttProvider`) | `Providers/` | `provider/` | 1 (done) |
 | Station directory (`StationDirectory`: CRS lookup, name search) | `Providers/` | `provider/` | done |
-| Tracking, ETA, live-change logic | `Tracking/` | `tracking/` | 2 |
-| Alarm delivery | `Alarm/` | `alarm/` | 3 |
+| Tracking, ETA, live-change logic | `Tracking/` | `tracking/` | 2 (done) |
+| Alarm delivery (`AlarmScheduler` protocol exists; the real implementation is Stage 3) | `Alarm/` | `alarm/` | 3 |
 | UI / app entry | `App/` | package root | 4 |
 
 A new feature is built on **both** platforms, in the matching layer.

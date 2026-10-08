@@ -57,6 +57,13 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
 - **Provider network tests** use no mocking library: iOS passes an ephemeral
   `URLSession` whose `protocolClasses` is a `URLProtocol` stub
   (`StubURLProtocol`) to `RttProvider`; Android passes a fake `HttpTransport`.
+- **Tracker tests** use hand-written fakes only: `FakeClock`, `FakeProvider`,
+  `FakeAlarmScheduler`, `FakeLocationSource`, with `ServiceBuilder` scripting poll
+  sequences (from the shared fixtures or built to match them). The pure
+  `JourneyMonitor` is tested through `MonitorHarness`; `JourneyTracker` through the fakes,
+  synchronising on `FakeClock.waitForSleepCount` / `awaitSleepCount`. Android uses
+  `runBlocking` and no `kotlinx-coroutines-test`; iOS uses an `AsyncStream` and a
+  continuation-based fake clock. The iOS and Android test lists are the same.
 - In a fresh git worktree `android/local.properties` is absent (it is
   gitignored), so run Gradle with the SDK path set:
   `ANDROID_HOME=$HOME/Library/Android/sdk ./gradlew test --offline`.
@@ -65,4 +72,3 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
 
 - Instrumented/UI tests (`androidTest`, XCUITest) — none yet; decide at Stage 4.
 - Code coverage target.
-- Mocking approach for `TrainDataProvider` itself (Stage 2 will use hand-written fakes).

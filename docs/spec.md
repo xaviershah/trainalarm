@@ -68,7 +68,8 @@ confirm hands-on before relying on it.
 ## 4. Live-change handling (must be built, not bolted on later)
 
 - **Delay**: destination ETA shifts → recompute alarm fire time → reschedule
-  the notification, but only on a meaningful shift (~>60s), to avoid churn.
+  the notification, but only on a meaningful shift (60s or more, measured
+  against the currently scheduled time), to avoid churn.
 - **Calling-pattern change**: re-check the *whole* stop sequence each poll,
   not just the destination's time. If the destination drops out of the
   calling pattern (diversion/early termination/cancellation), that's a
@@ -133,7 +134,20 @@ Poll interval: roughly every 30–60s while a journey is active.
    the OGL attribution in the app UI (UI stage). Known gaps: 11 Elizabeth
    line codes (e.g. PDX, FDX) have no NaPTAN coordinates and are absent;
    names are NaPTAN's (e.g. "Edinburgh", not "Edinburgh Waverley").
-2. Tracking, ETA & live-change logic — no UI, tested against fixtures.
+2. Tracking, ETA & live-change logic — DONE. Ships when: on both platforms a
+   `JourneyTracker` driven by fixture-based fakes (provider, clock, location
+   source, alarm scheduler) produces the expected events and scheduler calls
+   for delay, drop-out, cancellation, outage with and without GPS, recovery,
+   flapping, the past-fire clamp, scheduler refusal and arrival, including the
+   60s reschedule threshold; all unit-tested, no UI. The pure `JourneyMonitor`
+   holds the logic; `JourneyTracker` is the poll loop and event stream.
+   `AlarmScheduler` is only a protocol until Stage 3. Not done: the real clock
+   and GPS plumbing and the app wiring (Stages 3-4), and background execution
+   (Stage 5). On Android a blocking `HttpURLConnection` read cannot be
+   interrupted, so `stop()` can lag by up to the 10s timeout. Once an alarm's
+   scheduled time has passed, a later slip never re-arms it. Tracking ends
+   itself only on arrival: while the destination is lost or cancelled or the
+   feed is down, the caller ends it with `stop()`.
 3. Alarm delivery spike — highest risk, real-device test only, both
    platforms, success = alarm fires locked+silent at a scheduled time.
 4. UI build — once UX reference screenshots are in.

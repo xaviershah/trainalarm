@@ -1,1 +1,1 @@
-Stage 2: polling loop, ETA recompute, delay/diversion/cancellation handling. See docs/spec.md §4.
+Stage 2 (done): `JourneyMonitor` (pure ETA, fire-time, live-change and outage logic) and `JourneyTracker` (poll loop and event stream). Depends only on `TrainDataProvider` and the model types. Tracking ends itself only on arrival; otherwise (destination lost or cancelled, feed down) the caller ends it with `stop()`. See docs/spec.md §4.

@@ -23,9 +23,9 @@ shared. Each platform is a fully separate native codebase.
 
 ## Status
 
-Stage 1 done (journey model, UK provider, station data); Stage 2 (tracking,
-ETA and live-change logic) is next. See `docs/spec.md` §8 for the full stage
-list.
+Stages 1-2 done (journey model, UK provider, station data; tracking, ETA and
+live-change logic, with no UI yet); Stage 3 (alarm delivery spike, real device
+only) is next. See `docs/spec.md` §8 for the full stage list.
 
 ## Station data
 
