@@ -51,7 +51,7 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
   and ETA logic (Stage 2) is tested with fixtures only, without UI or network.
 - `stations.json` is bundled on both platforms; each platform's `StationDirectory`
   tests assert the bundled copy equals `data/stations.json`.
-- CI runs both suites on every push/PR that touches that platform.
+- CI runs both suites on every push/PR that touches that platform. Android CI also runs `gradle lint`; a lint error fails the check, warnings do not.
 - **Alarm delivery needs a real device**, not a simulator or emulator.
   It passes when the alarm fires while the phone is locked and silenced.
 - **Provider network tests** use no mocking library: iOS passes an ephemeral
