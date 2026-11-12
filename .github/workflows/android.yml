@@ -29,3 +29,5 @@ jobs:
         run: gradle assembleDebug
       - name: Unit tests
         run: gradle test
+      - name: Lint
+        run: gradle lint
