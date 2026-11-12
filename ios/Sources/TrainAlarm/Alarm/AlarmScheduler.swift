@@ -1,7 +1,6 @@
 import Foundation
 
-/// Sets the one alarm for a journey. Stage 3 provides the real implementation (AlarmKit);
-/// until then tests use a fake.
+/// Sets the one alarm for a journey. Real implementation: `AlarmKitScheduler`. Tests use a fake.
 protocol AlarmScheduler {
     /// Replaces any scheduled alarm with one at `fireAt` (idempotent). Throws if the OS
     /// refuses, for example when authorization is denied.

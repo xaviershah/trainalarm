@@ -8,7 +8,7 @@
 | UI | SwiftUI |
 | Deployment target | iOS 26.0 (required by AlarmKit) |
 | Project | XcodeGen (`ios/project.yml`); `.xcodeproj` is generated, not committed |
-| Alarms | AlarmKit — entitlement keys TBD, read from Apple docs before adding |
+| Alarms | AlarmKit; `NSAlarmKitUsageDescription` in Info.plist, no entitlement key added |
 | Location | Core Location, background `location` mode |
 | Networking/JSON | `URLSession` + `JSONSerialization` (no third-party deps) |
 | Concurrency | `async`/`await` |
@@ -21,7 +21,7 @@
 | UI | Jetpack Compose (BOM 2024.09.02), Material 3 |
 | SDK | minSdk 29, target/compileSdk 35 |
 | Build | Gradle 8.9, AGP 8.6.0, Kotlin DSL (`.kts`) |
-| Alarms | Foreground service + `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM` |
+| Alarms | `setAlarmClock` + `SCHEDULE_EXACT_ALARM`, `mediaPlayback` foreground service, `USE_FULL_SCREEN_INTENT` |
 | Networking/JSON | `org.json` (platform), no third-party HTTP client |
 | Concurrency | Kotlin coroutines 1.9.0 |
 
@@ -51,9 +51,9 @@
 
 ## Logging
 
-**TBD.** Nothing chosen yet. Candidates: `os.Logger` (iOS) and
-`android.util.Log` / Timber (Android). Decide before Stage 3; background
-alarm failures will be hard to debug without logs.
+`os.Logger` (iOS, category `alarm`) and `android.util.Log` (Android alarm code).
+The Android tracker reports failures through an injectable `onAlarmError`
+callback; Stage 4 wires it to `Log`.
 
 ## TBD
 

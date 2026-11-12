@@ -52,6 +52,7 @@ class FakeAlarmScheduler : AlarmScheduler {
     val scheduled = mutableListOf<Instant>()
     var cancelCount = 0
     var failuresRemaining = 0
+    var cancelFailure: Exception? = null
 
     override suspend fun schedule(fireAt: Instant) {
         attempts += fireAt
@@ -64,6 +65,7 @@ class FakeAlarmScheduler : AlarmScheduler {
 
     override suspend fun cancel() {
         cancelCount += 1
+        cancelFailure?.let { throw it }
     }
 }
 

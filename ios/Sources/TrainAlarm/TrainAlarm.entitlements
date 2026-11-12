@@ -3,11 +3,10 @@
 <plist version="1.0">
 <dict>
     <!--
-      TODO (Stage 3): AlarmKit's exact entitlement/authorization requirements
-      were not confirmed against Apple's current docs during research — read
-      https://developer.apple.com/documentation/AlarmKit directly before
-      Stage 3 and add whatever this dict actually needs. Do not guess a key
-      name here.
+      AlarmKit needs NSAlarmKitUsageDescription (Info.plist), read from Apple's
+      "Scheduling an alarm with AlarmKit". No entitlement key was needed:
+      verified on a real iPhone 12 Pro, iOS 26.6.1. Do not add a key without
+      reading Apple's docs.
     -->
 </dict>
 </plist>

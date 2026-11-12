@@ -11,6 +11,9 @@ struct ContentView: View {
             Text("Stage 0 scaffold — no journey logic yet.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+            #if DEBUG
+            DevAlarmView()
+            #endif
         }
         .padding()
     }
