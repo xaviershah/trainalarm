@@ -178,7 +178,7 @@ map in 4b).
 | bad | `#FF8F7A` | `#A32C1B` |
 
 Orange and teal are fills only: near-black text on orange (5.3:1) and cream on teal
-(7.6:1) pass; teal text on near-black (2.2:1) and orange text on beige (1.8:1) fail. Small
+(6.5:1) pass; teal text on near-black (2.2:1) and orange text on beige (1.8:1) fail. Small
 text on the beige ground uses `text`, never `muted` (3.9:1); `muted` is allowed on
 `surface` (4.9:1). The ringing screen is the same in both themes. A unit test computes the
 WCAG ratio from the token values and asserts at least 4.5:1 for: text on bg, text on surface,
