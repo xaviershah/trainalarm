@@ -5,12 +5,16 @@ import com.trainalarm.app.model.Service
 import com.trainalarm.app.provider.ProviderError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Collects a tracker's event flow so tests can wait for it deterministically. */
@@ -205,6 +209,49 @@ class JourneyTrackerTest {
         rig.clock.tick(45.0)  // nobody is sleeping any more
         yield()
         assertEquals(0, rig.provider.calls)
+    }
+
+    @Test
+    fun startAfterStopDoesNothing() = tracking(listOf(Result.success(happy()))) { rig ->
+        rig.clock.awaitSleepCount(1)
+        rig.tracker.stop()
+        rig.events.awaitFinished()
+        val attempts = rig.scheduler.attempts.size
+
+        val scope = CoroutineScope(currentCoroutineContext() + Job())
+        val job = rig.tracker.start(scope)  // a stopped tracker is single-use
+        yield()
+        yield()
+
+        assertEquals(attempts, rig.scheduler.attempts.size)
+        assertTrue(job.isCompleted)
+        scope.cancel()
+    }
+
+    @Test
+    fun aThrowingCancelOnArrivalDoesNotEscapeTheLoop() {
+        val arrived = ServiceBuilder.replacing(
+            happy(), 2,
+            ServiceBuilder.stop("BSK", scheduledArrival = "08:47:00", estimatedArrival = "08:50:00", hasArrived = true)
+        )
+        tracking(listOf(Result.success(arrived)), setup = { it.scheduler.cancelFailure = Boom() }) { rig ->
+            rig.clock.awaitSleepCount(1)
+            rig.clock.tick(45.0)
+            rig.events.awaitFinished()
+
+            assertEquals(TrackerEvent.Arrived(t("08:00:45")), rig.events.events.last())
+            assertEquals(1, rig.scheduler.cancelCount)
+        }
+    }
+
+    @Test
+    fun stopStillClosesTheFlowWhenCancelThrows() = tracking(
+        listOf(Result.success(happy())), setup = { it.scheduler.cancelFailure = Boom() }
+    ) { rig ->
+        rig.clock.awaitSleepCount(1)
+        rig.tracker.stop()  // must not throw
+        rig.events.awaitFinished()
+        assertEquals(1, rig.scheduler.cancelCount)
     }
 
     @Test

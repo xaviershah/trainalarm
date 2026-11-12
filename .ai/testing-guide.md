@@ -52,7 +52,7 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
 - `stations.json` is bundled on both platforms; each platform's `StationDirectory`
   tests assert the bundled copy equals `data/stations.json`.
 - CI runs both suites on every push/PR that touches that platform.
-- **Alarm delivery (Stage 3) needs a real device**, not a simulator or emulator.
+- **Alarm delivery needs a real device**, not a simulator or emulator.
   It passes when the alarm fires while the phone is locked and silenced.
 - **Provider network tests** use no mocking library: iOS passes an ephemeral
   `URLSession` whose `protocolClasses` is a `URLProtocol` stub
@@ -63,7 +63,7 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
   `JourneyMonitor` is tested through `MonitorHarness`; `JourneyTracker` through the fakes,
   synchronising on `FakeClock.waitForSleepCount` / `awaitSleepCount`. Android uses
   `runBlocking` and no `kotlinx-coroutines-test`; iOS uses an `AsyncStream` and a
-  continuation-based fake clock. The iOS and Android test lists are the same.
+  continuation-based fake clock. The iOS and Android test lists are the same, except the Android-only throwing-`cancel()` tests.
 - In a fresh git worktree `android/local.properties` is absent (it is
   gitignored), so run Gradle with the SDK path set:
   `ANDROID_HOME=$HOME/Library/Android/sdk ./gradlew test --offline`.

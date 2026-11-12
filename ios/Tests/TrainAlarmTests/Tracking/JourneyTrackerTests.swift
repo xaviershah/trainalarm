@@ -210,6 +210,21 @@ final class JourneyTrackerTests: XCTestCase {
         XCTAssertEqual(rig.provider.calls, 0)
     }
 
+    func testStartAfterStopDoesNothing() async {
+        let rig = makeRig([.success(happy())])
+        await rig.tracker.start()
+        await rig.clock.waitForSleepCount(1)
+        await rig.tracker.stop()
+        await rig.events.waitUntilFinished()
+        let attempts = rig.scheduler.attempts.count
+
+        await rig.tracker.start()  // a stopped tracker is single-use
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(rig.scheduler.attempts.count, attempts)
+        XCTAssertEqual(rig.clock.sleepCount, 1)
+    }
+
     func testCancellationDuringTheSleepIsNotReportedAsAnOutage() async {
         let rig = makeRig([.failure(ProviderError.http(500))])  // would show up as feedLost if a poll happened
         await rig.tracker.start()

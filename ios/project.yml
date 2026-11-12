@@ -22,6 +22,7 @@ targets:
         UILaunchScreen: {}
         NSLocationWhenInUseUsageDescription: "TrainAlarm needs your location to track your progress along the train route and know when to wake you."
         NSLocationAlwaysAndWhenInUseUsageDescription: "TrainAlarm needs background location access so it can keep tracking your journey and wake you before your stop, even while your phone is locked."
+        NSAlarmKitUsageDescription: "TrainAlarm sounds an alarm before your stop, even when your phone is silent or locked."
         UIBackgroundModes:
           - location
     entitlements:

@@ -28,7 +28,7 @@ One folder/package per architectural layer, identical on both platforms:
 | Rail data (`TrainDataProvider` + `RttProvider`) | `Providers/` | `provider/` | 1 (done) |
 | Station directory (`StationDirectory`: CRS lookup, name search) | `Providers/` | `provider/` | done |
 | Tracking, ETA, live-change logic | `Tracking/` | `tracking/` | 2 (done) |
-| Alarm delivery (`AlarmScheduler` protocol exists; the real implementation is Stage 3) | `Alarm/` | `alarm/` | 3 |
+| Alarm delivery (`AlarmKitScheduler` / `ExactAlarmScheduler` behind `AlarmScheduler`; Android device test pending) | `Alarm/` | `alarm/` | 3 |
 | UI / app entry | `App/` | package root | 4 |
 
 A new feature is built on **both** platforms, in the matching layer.

@@ -2,10 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      Permissions are declared here ahead of use so Stage 3 (alarm delivery
-      spike) doesn't start from zero. Runtime request flows for the
-      background-location and exact-alarm permissions still need to be
-      built — see docs/spec.md §5 and android/CLAUDE.md.
+      Stage 3 uses SCHEDULE_EXACT_ALARM, POST_NOTIFICATIONS, USE_FULL_SCREEN_INTENT and FOREGROUND_SERVICE_MEDIA_PLAYBACK; the location permissions are for Stage 5.
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -14,6 +11,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -31,5 +30,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver android:name=".alarm.AlarmReceiver" android:exported="false" />
+        <service
+            android:name=".alarm.AlarmService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <activity
+            android:name=".alarm.AlarmActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true" />
     </application>
 </manifest>

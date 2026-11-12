@@ -16,6 +16,7 @@ actor JourneyTracker {
     private let clock: TrackerClock
     private var state = MonitorState()
     private var loop: Task<Void, Never>?
+    private var stopped = false
 
     init(
         plan: TrackerPlan,
@@ -37,14 +38,16 @@ actor JourneyTracker {
     }
 
     /// Schedules the timetable-based alarm from the snapshot, then polls every `pollInterval`
-    /// until arrival or `stop()`.
+    /// until arrival or `stop()`. Does nothing after `stop()`.
     func start() {
-        guard loop == nil else { return }
+        guard loop == nil, !stopped else { return }
         loop = Task { await self.run() }
     }
 
     /// Stops polling, cancels the alarm and finishes the event stream. Safe to call more than once.
+    /// A stopped tracker is single-use: `start()` does nothing afterwards.
     func stop() async {
+        stopped = true
         loop?.cancel()
         await loop?.value
         loop = nil

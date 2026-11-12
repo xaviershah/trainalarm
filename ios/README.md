@@ -28,8 +28,8 @@ too much of the real user base by the time this ships.
 - `Sources/TrainAlarm/Models/` — Stage 1
 - `Sources/TrainAlarm/Providers/` — Stage 1
 - `Sources/TrainAlarm/Tracking/` — Stage 2
-- `Sources/TrainAlarm/Alarm/` — Stage 3
+- `Sources/TrainAlarm/Alarm/` — Stage 3 (AlarmKit scheduler; verified on device)
 - `Sources/TrainAlarm/App/` — Stage 4 replaces the current placeholder view.
-- `Sources/TrainAlarm/TrainAlarm.entitlements` — has a TODO for Stage 3;
-  AlarmKit's exact entitlement requirements need checking against Apple's
-  current docs, not guessed at.
+- `Sources/TrainAlarm/TrainAlarm.entitlements` — empty on purpose: AlarmKit
+  needed only `NSAlarmKitUsageDescription` (in `project.yml`), no entitlement
+  key. Don't add a key without reading Apple's docs.

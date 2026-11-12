@@ -24,8 +24,9 @@ shared. Each platform is a fully separate native codebase.
 ## Status
 
 Stages 1-2 done (journey model, UK provider, station data; tracking, ETA and
-live-change logic, with no UI yet); Stage 3 (alarm delivery spike, real device
-only) is next. See `docs/spec.md` §8 for the full stage list.
+live-change logic, with no UI yet). Stage 3 (alarm delivery spike, real device
+only): iOS verified on a real iPhone, Android built and unit-tested, Android
+device test pending, so not yet done. See `docs/spec.md` §8 for the full stage list.
 
 ## Station data
 

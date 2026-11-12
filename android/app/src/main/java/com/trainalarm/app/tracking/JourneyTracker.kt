@@ -27,7 +27,8 @@ class JourneyTracker(
     private val provider: TrainDataProvider,
     private val locationSource: LocationSource,
     private val scheduler: AlarmScheduler,
-    private val clock: TrackerClock
+    private val clock: TrackerClock,
+    private val onAlarmError: (String, Throwable) -> Unit = { _, _ -> }
 ) {
     private val monitor = JourneyMonitor(plan)
     private val pollInterval = plan.config.pollInterval
@@ -38,22 +39,38 @@ class JourneyTracker(
 
     private var state = MonitorState()
     private var job: Job? = null
+    private var stopped = false
 
     /**
      * Schedules the timetable-based alarm from the snapshot, then polls every `pollInterval`
-     * until arrival or [stop]. The loop runs in [scope].
+     * until arrival or [stop]. The loop runs in [scope]. Does nothing after [stop].
      */
     fun start(scope: CoroutineScope): Job {
+        if (stopped) return Job().also { it.complete() }  // a stopped tracker is single-use
         job?.let { return it }
         return scope.launch { run() }.also { job = it }
     }
 
     /** Stops polling, cancels the alarm and completes the event flow. Safe to call more than once. */
     suspend fun stop() {
+        stopped = true
         job?.cancelAndJoin()
         job = null
-        scheduler.cancel()
-        channel.close()
+        try {
+            cancelAlarm()
+        } finally {
+            channel.close()
+        }
+    }
+
+    /** A failing `cancel()` is reported, never thrown; a real cancellation (stop()) still propagates. */
+    private suspend fun cancelAlarm() {
+        try {
+            scheduler.cancel()
+        } catch (e: Exception) {
+            if (e is CancellationException) currentCoroutineContext().ensureActive()
+            onAlarmError("cancel", e)
+        }
     }
 
     private suspend fun run() {
@@ -107,7 +124,7 @@ class JourneyTracker(
                 state = monitor.schedulingFailed(state)
                 pending += TrackerEvent.AlarmSchedulingFailed(action.fireAt, e.message ?: e.toString())
             }
-            AlarmAction.Cancel -> scheduler.cancel()
+            AlarmAction.Cancel -> cancelAlarm()
         }
         pending.forEach { channel.trySend(it) }
     }

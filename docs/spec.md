@@ -85,7 +85,9 @@ Poll interval: roughly every 30–60s while a journey is active.
   bypass Silent/Focus mode, same standing as the built-in Clock app. Do
   *not* build against the old Critical Alerts entitlement path — Apple's
   manual review restricts that to health/safety/security apps and a train
-  alarm would likely be rejected.
+  alarm would likely be rejected. Needs `NSAlarmKitUsageDescription` in
+  Info.plist; no entitlement was required for the device build (iPhone 12 Pro,
+  iOS 26.6.1, free Apple ID).
 - **Android**: exact alarms are gated by default since Android 14
   (`SCHEDULE_EXACT_ALARM` needs explicit user grant via
   `ACTION_REQUEST_SCHEDULE_EXACT_ALARM`, or use `USE_EXACT_ALARM` which is
@@ -93,6 +95,11 @@ Poll interval: roughly every 30–60s while a journey is active.
   category apps). A background location service needs
   `FOREGROUND_SERVICE_LOCATION` + `ACCESS_BACKGROUND_LOCATION`. Battery-
   optimisation allowlisting is the standard extra step for reliability.
+  Implementation: `AlarmManager.setAlarmClock` (needs `SCHEDULE_EXACT_ALARM`,
+  checked with `canScheduleExactAlarms()`), a `mediaPlayback` foreground
+  service started from the alarm receiver, and a full-screen-intent
+  notification (`USE_FULL_SCREEN_INTENT`; `systemExempted` is the recorded
+  fallback type). Not yet verified on a device.
 - A timetable-based local notification is scheduled as a fallback the
   moment a journey starts, independent of whether live tracking is still
   running in the background — belt-and-braces against either OS killing
@@ -141,8 +148,8 @@ Poll interval: roughly every 30–60s while a journey is active.
    flapping, the past-fire clamp, scheduler refusal and arrival, including the
    60s reschedule threshold; all unit-tested, no UI. The pure `JourneyMonitor`
    holds the logic; `JourneyTracker` is the poll loop and event stream.
-   `AlarmScheduler` is only a protocol until Stage 3. Not done: the real clock
-   and GPS plumbing and the app wiring (Stages 3-4), and background execution
+   The real `AlarmScheduler` implementations arrived in Stage 3. Not done: the real
+   clock and GPS plumbing and the app wiring (Stage 4), and background execution
    (Stage 5). On Android a blocking `HttpURLConnection` read cannot be
    interrupted, so `stop()` can lag by up to the 10s timeout. Once an alarm's
    scheduled time has passed, a later slip never re-arms it. Tracking ends
@@ -150,6 +157,19 @@ Poll interval: roughly every 30–60s while a journey is active.
    feed is down, the caller ends it with `stop()`.
 3. Alarm delivery spike — highest risk, real-device test only, both
    platforms, success = alarm fires locked+silent at a scheduled time.
+   **Status: iOS verified on device, Android built and unit-tested, device test
+   pending. Not DONE.** `AlarmKitScheduler` (iOS) and `ExactAlarmScheduler` plus
+   a foreground service (Android) are built and unit-tested, with debug-only
+   harnesses. iOS verified on a real iPhone 12 Pro, iOS 26.6.1, on 2026-11-12:
+   a 60 s alarm fired with the phone locked, the silent switch on silent and a
+   Focus mode on; a cancelled alarm did not fire; the alarm still fired after
+   the app was force-quit; denied authorization made `schedule` throw; 0 s and
+   past times fired at once; scheduling twice left one alarm; cancelling while
+   ringing stopped it. Ships when: on a physical Android 14+ phone the same
+   holds, plus the exact-alarm, notification and full-screen-intent denied
+   paths behave as in §5. A simulator or emulator result is not a pass. Also
+   fixed: the Android tracker `cancel()` is guarded, and `start()` after
+   `stop()` is a no-op on both platforms.
 4. UI build — once UX reference screenshots are in.
 5. Background-reliability hardening — dedicated stage; this is the #1
    failure mode across every competitor found in research.

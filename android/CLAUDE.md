@@ -18,4 +18,4 @@ Kotlin, Jetpack Compose, Gradle Kotlin DSL (`.kts`). Package root:
   provider-boundary decision in docs/spec.md §2.
 - Background-location and exact-alarm permission requests are real,
   user-facing runtime flows (not manifest-only) — see AndroidManifest.xml
-  comments and docs/spec.md §5 before touching Stage 3 code.
+  comments and docs/spec.md §5 before touching alarm code.
