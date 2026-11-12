@@ -1,0 +1,391 @@
+<title>TrainAlarm UI Direction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Doto:wght@700&display=swap">
+<style>
+/* Layout: six phone frames on a canvas, one per screen in the agreed map, with a theme switch above.
+   Dark-first. Orange and teal are fills: orange carries near-black text (5.3:1), teal carries cream text (7.6:1).
+   Dot-matrix numerals (Doto) for every time readout, Anton for headings and buttons.
+   The alarm-ringing screen is deliberately theme-independent: a dark core inside an orange/teal glow. */
+:root {
+  --canvas: #141211;
+  --bg: #201D1C;
+  --surface: #2C2724;
+  --surface-2: #3A322E;
+  --text: #CFC3B6;
+  --head: #F3ECE3;
+  --muted: #B7AA9C;
+  --line: #4A403A;
+  --tick: #6C584C;
+  --accent: #F36509;
+  --on-accent: #201D1C;
+  --teal: #015D67;
+  --on-teal: #F3ECE3;
+  --teal-text: #2FA3B1;
+  --bad: #FF8F7A;
+  --scrim: rgba(20, 18, 17, .62);
+  --map-ground: #1B2626;
+  --map-block: #24393A;
+  --map-road: #CFC3B6;
+  --map-water: #0F4650;
+  --display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --dots: "Doto", ui-monospace, "SF Mono", Menlo, monospace;
+  --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --canvas: #B9ADA0; --bg: #CFC3B6; --surface: #E4DCD2; --surface-2: #F1EBE3;
+    --text: #201D1C; --head: #201D1C; --muted: #6C584C; --line: #B3A698; --tick: #6C584C;
+    --teal-text: #015D67; --bad: #A32C1B; --scrim: rgba(32, 29, 28, .45);
+    --map-ground: #AFBDB6; --map-block: #BFCBC5; --map-road: #E4DCD2; --map-water: #86A5A6;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --canvas: #B9ADA0; --bg: #CFC3B6; --surface: #E4DCD2; --surface-2: #F1EBE3;
+  --text: #201D1C; --head: #201D1C; --muted: #6C584C; --line: #B3A698; --tick: #6C584C;
+  --teal-text: #015D67; --bad: #A32C1B; --scrim: rgba(32, 29, 28, .45);
+  --map-ground: #AFBDB6; --map-block: #BFCBC5; --map-road: #E4DCD2; --map-water: #86A5A6;
+  color-scheme: light;
+}
+:root[data-theme="dark"] { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body {
+  background: var(--canvas); color: var(--text); font: 15px/1.45 var(--body);
+  padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+.disp { font-family: var(--display); font-weight: 400; letter-spacing: .01em; text-transform: uppercase; line-height: .98; color: var(--head); }
+.dots { font-family: var(--dots); font-weight: 700; line-height: .9; color: var(--head); letter-spacing: .02em; }
+.dim { opacity: .45; }
+
+.page { max-width: 1280px; margin: 0 auto; }
+.top { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; }
+.top h1 { font-size: clamp(40px, 7vw, 76px); margin: 0; }
+.top p { margin: 8px 0 0; max-width: 60ch; color: var(--text); }
+.switch { display: inline-flex; background: var(--bg); border-radius: 999px; padding: 4px; gap: 2px; }
+.switch button { border: 0; background: transparent; padding: 8px 18px; border-radius: 999px; font-weight: 600; }
+.switch button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px 28px; justify-items: center; }
+figure { margin: 0; width: 100%; max-width: 330px; }
+figcaption { margin-top: 14px; font-size: 14px; }
+figcaption b { color: var(--head); display: block; font-size: 15px; }
+
+.phone { background: var(--bg); border-radius: 38px; border: 8px solid #0d0b0b; height: 660px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+:root[data-theme="light"] .phone { border-color: #3a322e; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .phone { border-color: #3a322e; } }
+.status { display: flex; justify-content: space-between; padding: 12px 22px 0; font-size: 13px; font-weight: 600; color: var(--head); position: relative; z-index: 3; }
+.screen { padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; }
+.bar { display: flex; justify-content: space-between; align-items: center; }
+.mark { font-family: var(--display); font-size: 20px; text-transform: uppercase; color: var(--head); letter-spacing: .02em; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--surface); display: grid; place-items: center; color: var(--head); }
+.icon-btn svg { width: 20px; height: 20px; }
+
+.field { background: var(--surface); border-radius: 18px; padding: 12px 16px; }
+.field small { display: block; color: var(--muted); font-size: 12px; }
+.field strong { font-size: 19px; color: var(--head); }
+.chip { display: inline-block; border: 1.5px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 13px; background: transparent; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.h2 { margin: 6px 0 0; font-size: 13px; color: var(--muted); font-weight: 600; }
+
+.row { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; background: var(--surface); border-radius: 16px; padding: 12px 14px; }
+.row .t { font-family: var(--dots); font-weight: 700; font-size: 34px; color: var(--head); line-height: 1; }
+.row .m { font-size: 13px; color: var(--muted); }
+.row .m b { color: var(--text); font-weight: 600; }
+.row.sel { background: var(--teal); }
+.row.sel .t, .row.sel .m, .row.sel .m b { color: var(--on-teal); }
+.row.off { opacity: .8; }
+.pill { border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 700; background: var(--surface-2); color: var(--text); white-space: nowrap; }
+.pill.late { background: var(--accent); color: var(--on-accent); }
+.pill.bad { background: transparent; border: 1.5px solid var(--bad); color: var(--bad); }
+.row.sel .pill { background: var(--on-teal); color: var(--teal); }
+
+.scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 1; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; background: var(--surface); border-radius: 28px 28px 0 0; padding: 12px 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.grab { width: 40px; height: 4px; border-radius: 4px; background: var(--line); align-self: center; }
+.sheet h3 { margin: 0; font-size: 30px; }
+.pick { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; }
+.dial { width: 150px; height: 150px; display: block; }
+.dial .face { fill: var(--surface-2); }
+.dial .ticks { fill: none; stroke: var(--tick); stroke-width: 6; stroke-dasharray: 1.4 5.3; }
+.dial .core { fill: var(--on-accent); }
+.dial .alarm { fill: var(--accent); }
+.dial .arrive { fill: var(--head); }
+.dial text { fill: #F3ECE3; font-family: var(--dots); font-weight: 700; }
+.read small { display: block; color: var(--muted); font-size: 12px; }
+.read .dots { font-size: 44px; }
+.read .gap { height: 8px; }
+.ruler-wrap { position: relative; }
+.ruler { height: 44px; border-radius: 12px; background: var(--surface-2) repeating-linear-gradient(90deg, var(--tick) 0 1.5px, transparent 1.5px 9px); position: relative; overflow: hidden; }
+.ruler::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: var(--accent); }
+.ruler-nums { display: flex; justify-content: space-between; padding: 6px 4px 0; font-family: var(--dots); font-weight: 700; font-size: 17px; color: var(--muted); }
+.ruler-nums .on { color: var(--head); }
+.note { border-radius: 14px; padding: 10px 12px; font-size: 13px; border: 1.5px solid var(--bad); color: var(--text); }
+.note b { color: var(--bad); }
+.cta { border: 0; border-radius: 18px; background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: 17px; padding: 15px; width: 100%; }
+.cta.ghost { background: transparent; color: var(--head); border: 1.5px solid var(--line); font-weight: 600; }
+
+.map { height: 232px; margin: -14px -18px 0; position: relative; z-index: 0; flex: none; }
+.map svg { width: 100%; height: 100%; display: block; }
+.map .fab { position: absolute; top: 10px; right: 14px; }
+.tsheet { position: relative; z-index: 2; margin: -26px -18px 0; background: var(--surface); border-radius: 28px 28px 0 0; padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.tsheet .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tsheet .head .disp { font-size: 28px; }
+.count { display: flex; align-items: baseline; gap: 10px; }
+.count .dots { font-size: 66px; }
+.count span { color: var(--muted); font-size: 13px; line-height: 1.25; }
+.track { position: relative; height: 22px; background: repeating-linear-gradient(90deg, var(--tick) 0 1.5px, transparent 1.5px 7px); border-radius: 6px; -webkit-mask: linear-gradient(#000, #000); }
+.track i { position: absolute; left: 0; top: 0; bottom: 0; width: 34%; background: var(--teal); opacity: .9; border-radius: 6px 0 0 6px; mix-blend-mode: normal; }
+.track b { position: absolute; left: 34%; top: -3px; bottom: -3px; width: 3px; background: var(--accent); margin-left: -1.5px; }
+.times { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: -4px; }
+.card { background: var(--surface-2); border-radius: 16px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.card b { color: var(--head); }
+.ok { color: var(--teal-text); font-weight: 700; }
+.fine { font-size: 12px; color: var(--muted); }
+.spacer { flex: 1; }
+.offbtn { border: 0; border-radius: 18px; background: var(--accent); color: var(--on-accent); font-family: var(--display); font-size: 28px; text-transform: uppercase; letter-spacing: .02em; padding: 12px; width: 100%; }
+
+.ring { background: #120F0E; color: #F3ECE3; }
+.ring .status { color: #F3ECE3; }
+.ring .screen { justify-content: space-between; padding-top: 18px; }
+.ring .glow { position: absolute; left: 50%; top: 40%; width: 420px; height: 420px; margin: -210px 0 0 -210px; border-radius: 50%; background: radial-gradient(circle, #000 0 26%, rgba(243,101,9,.95) 40%, rgba(243,101,9,.55) 52%, rgba(1,93,103,.75) 66%, rgba(1,93,103,0) 76%); filter: blur(14px); z-index: 0; }
+.ring .ringsvg { position: absolute; left: 50%; top: 40%; width: 300px; height: 300px; margin: -150px 0 0 -150px; z-index: 1; }
+.ring .ringsvg circle { fill: none; stroke: #F3ECE3; stroke-width: 7; stroke-dasharray: 1.6 6.6; opacity: .75; }
+.ring .centre { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); text-align: center; z-index: 2; width: 180px; }
+.ring .centre .dots { font-size: 92px; color: #F3ECE3; }
+.ring .centre small { display: block; font-size: 15px; font-weight: 600; margin-top: 2px; color: #F3ECE3; }
+.ring .low { position: relative; z-index: 2; margin-top: auto; }
+.ring .low .disp { color: #F3ECE3; font-size: 40px; text-align: center; margin-bottom: 12px; }
+.ring .btn { border: 0; border-radius: 22px; background: #F3ECE3; color: #201D1C; font-family: var(--display); font-size: 40px; text-transform: uppercase; padding: 20px; width: 100%; letter-spacing: .02em; }
+.ring small.hint { display: block; text-align: center; margin-top: 10px; font-weight: 600; color: #CFC3B6; font-size: 12px; }
+
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border-radius: 14px; padding: 4px; gap: 2px; }
+.seg span { text-align: center; padding: 10px 0; border-radius: 10px; font-weight: 600; }
+.seg span.on { background: var(--accent); color: var(--on-accent); }
+.perm { display: flex; justify-content: space-between; align-items: center; background: var(--surface); border-radius: 14px; padding: 12px 14px; }
+.perm .fix { border: 1.5px solid var(--bad); color: var(--bad); background: transparent; border-radius: 999px; padding: 4px 12px; font-weight: 700; font-size: 13px; }
+
+.state { border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; background: var(--surface); }
+.state b { color: var(--head); font-size: 16px; }
+.state.warn { background: var(--accent); color: var(--on-accent); }
+.state.warn b { color: var(--on-accent); }
+.state.info { background: var(--teal); color: var(--on-teal); }
+.state.info b { color: var(--on-teal); }
+.state.err { border: 1.5px solid var(--bad); }
+.state .disp { font-size: 26px; }
+.state.warn .disp { color: var(--on-accent); }
+.state.info .disp { color: var(--on-teal); }
+.sep { display: inline-flex; flex-direction: column; justify-content: center; gap: .16em; width: .34em; margin: 0 .04em; vertical-align: middle; align-items: center; }
+.sep i { width: .13em; height: .13em; border-radius: 50%; background: currentColor; display: block; }
+.note-foot { margin-top: 34px; max-width: 80ch; color: var(--text); }
+.note-foot b { color: var(--head); }
+@media (prefers-reduced-motion: no-preference) { .switch button { transition: background .15s; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <div>
+      <h1 class="disp">TrainAlarm</h1>
+      <p>Revision 2, with example data. Dot-matrix time readouts, a dial and ruler for picking the alarm, a map under the tracking sheet, and a glow on the alarm screen. Dark and light are both switchable in Settings.</p>
+    </div>
+    <div class="switch" role="group" aria-label="Preview theme">
+      <button id="t-system" aria-pressed="true">System</button>
+      <button id="t-dark" aria-pressed="false">Dark</button>
+      <button id="t-light" aria-pressed="false">Light</button>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <figure>
+      <div class="phone"><div class="status"><span>9:41</span><span>5G</span></div>
+        <div class="screen">
+          <div class="bar"><span class="mark">TrainAlarm</span>
+            <button class="icon-btn" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+          </div>
+          <h2 class="disp" style="font-size:58px;margin:4px 0 0">Where to?</h2>
+          <div class="stack">
+            <div class="field"><small>From</small><strong>Finsbury Park</strong></div>
+            <div class="field"><small>To</small><strong>Edinburgh</strong></div>
+          </div>
+          <div><span class="chip">Nearest: Finsbury Park</span></div>
+          <div class="h2">Trains from Finsbury Park calling at Edinburgh</div>
+          <div class="stack">
+            <div class="row"><span class="t num">13:30</span><span class="m"><b>LNER</b><br>Platform 4</span><span class="pill">On time</span></div>
+            <div class="row"><span class="t num">14:00</span><span class="m"><b>LNER</b><br>Platform 6</span><span class="pill late">+4 min</span></div>
+            <div class="row off"><span class="t num">14:30</span><span class="m"><b>LNER</b><br>Platform 2</span><span class="pill bad">Cancelled</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Home: pick your train</b>Station search, then the live board filtered to trains that call at your stop. Departure times use the dot-matrix face.</figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone"><div class="status"><span>9:41</span><span>5G</span></div>
+        <div class="screen">
+          <div class="bar"><span class="mark">TrainAlarm</span><span class="chip">Finsbury Park to Edinburgh</span></div>
+          <div class="stack">
+            <div class="row"><span class="t num">13:30</span><span class="m"><b>LNER</b><br>Platform 4</span><span class="pill">On time</span></div>
+            <div class="row sel"><span class="t num">14:00</span><span class="m"><b>LNER</b><br>Platform 6</span><span class="pill">+4 min</span></div>
+          </div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <h3 class="disp">Wake me before Edinburgh</h3>
+          <div class="pick">
+            <svg class="dial" viewBox="0 0 160 160" role="img" aria-label="Dial: alarm at 18:31, arrival at 18:46">
+              <circle class="face" cx="80" cy="80" r="78"/>
+              <circle class="ticks" cx="80" cy="80" r="66"/>
+              <circle class="core" cx="80" cy="80" r="44"/>
+              <circle class="alarm" cx="73.3" cy="145.7" r="6"/>
+              <circle class="arrive" cx="14.4" cy="73" r="6"/>
+              <text x="80" y="88" text-anchor="middle" font-size="40">15</text>
+              <text x="80" y="108" text-anchor="middle" font-size="12" style="font-family:var(--body);font-weight:600">min before</text>
+            </svg>
+            <div class="read">
+              <small>Alarm at</small><div class="dots num">18:31</div>
+              <div class="gap"></div>
+              <small>Arrives</small><div class="dots num dim">18:46</div>
+            </div>
+          </div>
+          <div class="ruler-wrap" aria-label="Minutes before arrival, 15 selected">
+            <div class="ruler"></div>
+            <div class="ruler-nums"><span>5</span><span>10</span><span class="on">15</span><span>20</span><span>25</span></div>
+          </div>
+          <div class="note"><b>Exact alarms are off.</b> Your alarm may ring late. Open settings to allow them, or continue anyway.</div>
+          <button class="cta">Start tracking</button>
+        </div>
+      </div>
+      <figcaption><b>Confirm: pick the alarm</b>A dial shows the alarm and arrival times, and a ruler sets the lead time. It follows the alarm references: big dot-matrix times, tick scrubber, fixed marker.</figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone"><div class="status"><span>16:12</span><span>GPS</span></div>
+        <div class="screen">
+          <div class="map" role="img" aria-label="Map of the route with your train's position">
+            <svg viewBox="0 0 300 232" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <pattern id="blocks" width="26" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+                  <rect width="26" height="22" fill="var(--map-ground)"/>
+                  <rect x="2" y="2" width="9" height="8" fill="var(--map-block)"/>
+                  <rect x="13" y="2" width="11" height="8" fill="var(--map-block)"/>
+                  <rect x="2" y="12" width="14" height="8" fill="var(--map-block)"/>
+                  <rect x="18" y="12" width="6" height="8" fill="var(--map-block)"/>
+                </pattern>
+              </defs>
+              <rect width="300" height="232" fill="url(#blocks)"/>
+              <path d="M-10 70 C 60 60, 90 120, 150 118 S 250 170, 320 150" fill="none" stroke="var(--map-water)" stroke-width="22" stroke-linecap="round"/>
+              <g stroke="var(--map-road)" stroke-width="1.4" opacity=".55" fill="none">
+                <path d="M0 40 L300 90"/><path d="M0 190 L300 120"/><path d="M60 0 L110 232"/><path d="M200 0 L170 232"/><path d="M260 0 L240 232"/>
+              </g>
+              <path d="M30 196 C 80 170, 110 140, 150 120 S 230 70, 268 48" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 0"/>
+              <path d="M150 120 S 230 70, 268 48" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8" opacity="0"/>
+              <circle cx="30" cy="196" r="6" fill="var(--map-road)"/>
+              <circle cx="150" cy="120" r="16" fill="var(--accent)" opacity=".28"/>
+              <circle cx="150" cy="120" r="8" fill="var(--accent)" stroke="#F3ECE3" stroke-width="3"/>
+              <circle cx="268" cy="48" r="9" fill="var(--bg)" stroke="var(--map-road)" stroke-width="3"/>
+              <circle cx="268" cy="48" r="3.5" fill="var(--map-road)"/>
+            </svg>
+            <button class="icon-btn fab" aria-label="Centre on my train"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+          </div>
+          <div class="tsheet">
+            <div class="head"><span class="disp">Edinburgh</span><span class="pill late">4 min late</span></div>
+            <div class="count"><span class="dots num">2:38</span><span>hours to go<br>arrives <b class="num" style="color:var(--head)">18:50</b></span></div>
+            <div class="track" role="img" aria-label="Journey progress, 34 percent"><i></i><b></b></div>
+            <div class="times"><span>Finsbury Park 14:00</span><span>Edinburgh 18:50</span></div>
+            <div class="card"><span><b>Alarm 18:35</b> <span class="fine">15 min before</span></span><span class="ok">Set</span></div>
+            <div class="fine">Next stop Newcastle 17:56. GPS good. Live data 12 s ago.</div>
+            <div class="spacer"></div>
+            <button class="offbtn">I'm off</button>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Tracking, with a map</b>Bottom sheet with a tick scrubber for journey progress. The map on top arrives in Stage 4b; Stage 4 draws a route strip in its place, through the calling points, with the train marker.</figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone ring"><div class="status"><span>18:35</span><span></span></div>
+        <div class="glow"></div>
+        <svg class="ringsvg" viewBox="0 0 300 300" aria-hidden="true"><circle cx="150" cy="150" r="140"/></svg>
+        <div class="centre"><div class="dots num">15</div><small>minutes to Edinburgh</small></div>
+        <div class="screen">
+          <div class="low">
+            <div class="disp">Wake up</div>
+            <button class="btn">I'm off</button>
+            <small class="hint">Rings louder until you tap.</small>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Alarm ringing</b>Dark core inside an orange and teal glow, dot-matrix countdown, one huge button. Same in dark and light. On iOS the lock screen alert is Apple's own, so this shows when the app is open.</figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone"><div class="status"><span>9:41</span><span>5G</span></div>
+        <div class="screen">
+          <div class="bar"><span class="mark">Settings</span><span class="chip">Done</span></div>
+          <div><div class="h2" style="margin:0 0 6px">Theme</div><div class="seg"><span>System</span><span class="on">Dark</span><span>Light</span></div></div>
+          <div class="field"><small>Default alarm lead time</small><strong>15 minutes before</strong></div>
+          <div class="stack">
+            <div class="h2" style="margin:0">Permissions</div>
+            <div class="perm"><span>Location</span><span class="ok">Allowed</span></div>
+            <div class="perm"><span>Alarms</span><span class="ok">Allowed</span></div>
+            <div class="perm"><span>Notifications</span><button class="fix">Fix</button></div>
+          </div>
+          <button class="cta ghost">Test alarm in 10 seconds</button>
+          <div class="spacer"></div>
+          <div class="fine">Station data: NaPTAN, © Department for Transport, Open Government Licence v3.0. Train times: Realtime Trains. Map data: to be added once a map provider is chosen.</div>
+        </div>
+      </div>
+      <figcaption><b>Settings</b>Theme, default lead time, permission status with a fix button, a test alarm, and the attribution the data requires.</figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone"><div class="status"><span>17:02</span><span>GPS</span></div>
+        <div class="screen">
+          <div class="bar"><span class="mark">Tracking states</span></div>
+          <div class="state warn"><span class="disp">Train cancelled</span><b>The 14:00 will not run</b><span>Your alarm is cancelled. Pick another train.</span></div>
+          <div class="state err"><b>Edinburgh is no longer on this route</b><span>The train has been diverted. Your alarm is paused until you choose a stop.</span></div>
+          <div class="state"><b>No live data</b><span>Using the timetable and your GPS. Last good update 6 minutes ago.</span></div>
+          <div class="state info"><span class="disp">Arrived</span><b>Edinburgh</b><span>Tracking has stopped and the alarm is cleared.</span></div>
+        </div>
+      </div>
+      <figcaption><b>Tracking states</b>One card per tracker event: cancelled, destination dropped, feed lost, arrived. Each says what happened and what the app is doing about it.</figcaption>
+    </figure>
+
+  </div>
+
+  <p class="note-foot"><b>Type:</b> Anton for headlines and buttons, Doto (dot-matrix) for every time readout. Both are SIL OFL and would be bundled in both apps. Body text uses each platform's system font. <b>Colour:</b> the five reference colours, plus tints of them for surfaces and secondary text. All times and stations on this page are made up.</p>
+</div>
+
+<script>
+(function () {
+  document.querySelectorAll('.dots, .row .t').forEach(function (el) {
+    el.childNodes.forEach(function (n) {
+      if (n.nodeType === 3 && n.nodeValue.indexOf(':') > -1) {
+        var parts = n.nodeValue.split(':'), frag = document.createDocumentFragment();
+        parts.forEach(function (p, i) {
+          if (i) { var s = document.createElement('span'); s.className = 'sep'; s.setAttribute('aria-hidden', 'true'); s.innerHTML = '<i></i><i></i>'; frag.appendChild(s); }
+          frag.appendChild(document.createTextNode(p));
+        });
+        n.replaceWith(frag);
+      }
+    });
+  });
+  var root = document.documentElement;
+  var btns = { system: document.getElementById('t-system'), dark: document.getElementById('t-dark'), light: document.getElementById('t-light') };
+  function set(mode) {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    Object.keys(btns).forEach(function (k) { btns[k].setAttribute('aria-pressed', String(k === mode)); });
+  }
+  Object.keys(btns).forEach(function (k) { btns[k].addEventListener('click', function () { set(k); }); });
+})();
+</script>
