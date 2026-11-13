@@ -10,6 +10,7 @@ private final class FakeAlarmKitClient: AlarmKitClient {
     private(set) var requested = 0
     private(set) var calls: [String] = []  // "schedule" / "cancel", in order
     private(set) var scheduled: [(id: UUID, fireAt: Date)] = []
+    private(set) var titles: [String] = []
     private(set) var cancelled: [UUID] = []
 
     func requestAuthorization() async throws -> AlarmAuthorization {
@@ -21,6 +22,7 @@ private final class FakeAlarmKitClient: AlarmKitClient {
         calls.append("schedule")
         if let scheduleFailure { throw scheduleFailure }
         scheduled.append((id, fireAt))
+        titles.append(title)
     }
     func cancel(id: UUID) throws {
         calls.append("cancel")
@@ -39,6 +41,12 @@ final class AlarmKitSchedulerTests: XCTestCase {
         AlarmKitScheduler(client: client, defaults: defaults, now: { self.now })
     }
     private func later(_ s: TimeInterval) -> Date { now.addingTimeInterval(s) }
+
+    func testTheAlarmIsTitledWithTheAppWording() async throws {
+        let client = FakeAlarmKitClient()
+        try await make(client).schedule(fireAt: later(600))
+        XCTAssertEqual(client.titles, [AlarmWording.title])
+    }
 
     func testAuthorizedSchedulesAFixedAlarmWithoutRequesting() async throws {
         let client = FakeAlarmKitClient()

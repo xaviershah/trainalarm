@@ -20,7 +20,7 @@ enum PollResult: Equatable {
 }
 
 /// One tick's input to the monitor.
-struct Observation: Equatable {
+struct TickObservation: Equatable {
     let result: PollResult
     let now: Date
     /// The latest location fix sampled this tick, if any (sampled whether or not the feed is up).

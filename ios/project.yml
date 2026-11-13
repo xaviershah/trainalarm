@@ -3,6 +3,8 @@ options:
   bundleIdPrefix: com.trainalarm
   deploymentTarget:
     iOS: "26.0"
+configFiles:
+  Debug: Config/Base.xcconfig
 targets:
   TrainAlarm:
     type: application
@@ -20,9 +22,13 @@ targets:
       path: Generated/Info.plist
       properties:
         UILaunchScreen: {}
+        RTTAccessToken: "$(RTT_ACCESS_TOKEN)"
         NSLocationWhenInUseUsageDescription: "TrainAlarm needs your location to track your progress along the train route and know when to wake you."
         NSLocationAlwaysAndWhenInUseUsageDescription: "TrainAlarm needs background location access so it can keep tracking your journey and wake you before your stop, even while your phone is locked."
         NSAlarmKitUsageDescription: "TrainAlarm sounds an alarm before your stop, even when your phone is silent or locked."
+        UIAppFonts:
+          - Anton-Regular.ttf
+          - Doto-Variable.ttf
         UIBackgroundModes:
           - location
     entitlements:

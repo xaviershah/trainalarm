@@ -64,11 +64,19 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
   synchronising on `FakeClock.waitForSleepCount` / `awaitSleepCount`. Android uses
   `runBlocking` and no `kotlinx-coroutines-test`; iOS uses an `AsyncStream` and a
   continuation-based fake clock. The iOS and Android test lists are the same, except the Android-only throwing-`cancel()` tests.
+- **UI is checked by unit tests on the model plus screenshots.** `SessionModel` is tested with the same
+  hand-written fakes as the tracker. `tools/screenshots/ios.sh` opens every demo scenario in both
+  themes and saves the PNGs to `docs/ui-screenshots/ios/`; look at them against `docs/ui-mockup/`.
+  `tools/screenshots/android.sh` does the same on a running emulator but has never been run, so the
+  Android screens have not been seen. A screenshot is never a pass for alarm delivery.
+- **Demo mode** (debug builds, no RTT token) runs the whole flow on scripted trains; scenario tests in
+  `android/app/src/testDebug/.../demo/ScenarioTest.kt` and `ios/Tests/TrainAlarmTests/App/ScenarioTests.swift` pin each named scenario.
 - In a fresh git worktree `android/local.properties` is absent (it is
   gitignored), so run Gradle with the SDK path set:
   `ANDROID_HOME=$HOME/Library/Android/sdk ./gradlew test --offline`.
 
 ## TBD
 
-- Instrumented/UI tests (`androidTest`, XCUITest) — none yet; decide at Stage 4.
+- Instrumented/UI tests (`androidTest`, XCUITest) — none: Stage 4 checks the UI with model unit tests and
+  screenshots. Revisit if UI regressions start to bite.
 - Code coverage target.

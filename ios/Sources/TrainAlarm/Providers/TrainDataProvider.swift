@@ -11,12 +11,20 @@ protocol TrainDataProvider {
     /// Find stations matching a free-text search (e.g. a name the user typed).
     func searchStations(query: String) async throws -> [Station]
 
-    /// Live/scheduled departures from `station` at or after `from`.
-    func departureBoard(station: Station, from: Date) async throws -> [Service]
+    /// Live/scheduled departures from `station` at or after `from`. With `callingAt` set, only
+    /// trains that subsequently call at that station are returned.
+    func departureBoard(station: Station, from: Date, callingAt: Station?) async throws -> [Service]
 
     /// The full stop-by-stop detail for one specific service, including live
     /// times where available. Called both to select a journey and,
     /// repeatedly, to poll for changes while a journey is active (§4).
     /// `date` is currently ignored: `serviceId` already identifies the day. Reuse `service.id` when polling.
     func serviceDetails(serviceId: String, date: Date) async throws -> Service
+}
+
+extension TrainDataProvider {
+    /// A board with no destination filter.
+    func departureBoard(station: Station, from: Date) async throws -> [Service] {
+        try await departureBoard(station: station, from: from, callingAt: nil)
+    }
 }

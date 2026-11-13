@@ -13,7 +13,10 @@ final class StubURLProtocol: URLProtocol {
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
+    static var lastRequest: URLRequest?
+
     override func startLoading() {
+        Self.lastRequest = request
         switch Self.reply {
         case let .response(status, body):
             let http = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
@@ -34,6 +37,28 @@ final class StubURLProtocol: URLProtocol {
 
 final class RttProviderTests: XCTestCase {
     private let waterloo = Station(id: "WAT", name: "London Waterloo", latitude: 51.5031, longitude: -0.1132)
+
+    private let edinburgh = Station(id: "EDB", name: "Edinburgh", latitude: 55.9521, longitude: -3.1894)
+
+    private func queryItems() -> [String: String] {
+        let url = StubURLProtocol.lastRequest!.url!
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems ?? []
+        return Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") })
+    }
+
+    func testDepartureBoardSendsFilterToWhenCallingAtIsGiven() async throws {
+        reply(204)
+        _ = try await makeProvider().departureBoard(station: waterloo, from: Date(), callingAt: edinburgh)
+        XCTAssertEqual(queryItems()["filterTo"], "EDB")
+        XCTAssertEqual(queryItems()["code"], "WAT")
+        XCTAssertEqual(StubURLProtocol.lastRequest!.url!.path, "/gb-nr/location")
+    }
+
+    func testDepartureBoardOmitsFilterToByDefault() async throws {
+        reply(204)
+        _ = try await makeProvider().departureBoard(station: waterloo, from: Date())
+        XCTAssertNil(queryItems()["filterTo"])
+    }
 
     private func makeProvider() -> RttProvider {
         let configuration = URLSessionConfiguration.ephemeral

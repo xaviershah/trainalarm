@@ -1,7 +1,7 @@
 import Foundation
 
 /// The pure decision core of the tracker. It performs no I/O and never throws: the driver feeds
-/// it one `Observation` per tick and applies the `AlarmAction` it returns, then reports back with
+/// it one `TickObservation` per tick and applies the `AlarmAction` it returns, then reports back with
 /// `confirmScheduled` or `schedulingFailed`. See the spec's "Monitor rules".
 struct JourneyMonitor {
     let plan: TrackerPlan
@@ -16,7 +16,7 @@ struct JourneyMonitor {
         return observeService(snapshot, now: now, state: state)
     }
 
-    func step(_ state: MonitorState, _ observation: Observation) -> MonitorStep {
+    func step(_ state: MonitorState, _ observation: TickObservation) -> MonitorStep {
         guard !state.finished else { return MonitorStep(state: state, events: [], action: .none) }
         var state = state
         if let fix = observation.fix {

@@ -1,7 +1,15 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+}
+
+// For the developer's own devices only (spec section 7). local.properties is gitignored and may be absent.
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -17,7 +25,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Only debug builds carry a token: RTT's terms forbid shipping one in a distributed app.
+            buildConfigField("String", "RTT_ACCESS_TOKEN", "\"${localProperties.getProperty("rtt.accessToken", "").trim()}\"")
+        }
         release {
+            buildConfigField("String", "RTT_ACCESS_TOKEN", "\"\"")   // release builds never contain a token
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -33,6 +46,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

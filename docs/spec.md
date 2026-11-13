@@ -54,9 +54,9 @@ the full schema):
   types to a CRS/TIPLOC code needs a static station dataset. It is now
   built: `data/stations.json` (2,626 Great Britain stations from NaPTAN
   under OGL v3.0, see `data/STATIONS-SOURCE.md`), loaded by
-  `StationDirectory` on both platforms. Still to do: wiring
-  `RttProvider.searchStations` to it (it deliberately throws for now
-  rather than guessing at an endpoint that doesn't exist).
+  `StationDirectory` on both platforms. The app's station picker
+  searches `StationDirectory` directly (Stage 4); `RttProvider.searchStations`
+  still deliberately throws rather than guess at an endpoint that doesn't exist.
 - `GeographicLocation` has no coordinates — GPS lat/lon comes from that
   same station dataset (`StationDirectory`), not from RTT.
 
@@ -119,6 +119,8 @@ Poll interval: roughly every 30–60s while a journey is active.
 
 - Minimum iOS version acceptability, given AlarmKit requires iOS 26.
 - Monetisation model, if any.
+- RTT token distribution: RTT's terms forbid a token inside a distributed app, so builds with a token are
+  for the developer's own devices only. A small backend proxy that holds the token is needed before any beta.
 - Multi-leg/connection journeys, auto-detection of boarded train, and a
   second country's data provider are all explicitly deferred (v2/v3).
 
@@ -136,9 +138,9 @@ Poll interval: roughly every 30–60s while a journey is active.
    on `Stop`, 10s Android timeouts, and HTTP 204 handling (an empty
    departure board). The station dataset is now built (`data/stations.json`,
    2,626 GB stations from NaPTAN under OGL v3.0, with `StationDirectory`
-   on both platforms for CRS lookup, name search and coordinates). Not yet
-   done: wiring `RttProvider.searchStations` to the directory, and showing
-   the OGL attribution in the app UI (UI stage). Known gaps: 11 Elizabeth
+   on both platforms for CRS lookup, name search and coordinates). The picker
+   searches the directory (Stage 4), Settings shows the OGL attribution, and
+   `RttProvider.searchStations` stays unwired. Known gaps: 11 Elizabeth
    line codes (e.g. PDX, FDX) have no NaPTAN coordinates and are absent;
    names are NaPTAN's (e.g. "Edinburgh", not "Edinburgh Waverley").
 2. Tracking, ETA & live-change logic — DONE. Ships when: on both platforms a
@@ -148,8 +150,7 @@ Poll interval: roughly every 30–60s while a journey is active.
    flapping, the past-fire clamp, scheduler refusal and arrival, including the
    60s reschedule threshold; all unit-tested, no UI. The pure `JourneyMonitor`
    holds the logic; `JourneyTracker` is the poll loop and event stream.
-   The real `AlarmScheduler` implementations arrived in Stage 3. Not done: the real
-   clock and GPS plumbing and the app wiring (Stage 4), and background execution
+   The real `AlarmScheduler` implementations arrived in Stage 3. The real clock, GPS plumbing and app wiring arrived in Stage 4. Not done: background execution
    (Stage 5). On Android a blocking `HttpURLConnection` read cannot be
    interrupted, so `stop()` can lag by up to the 10s timeout. Once an alarm's
    scheduled time has passed, a later slip never re-arms it. Tracking ends
@@ -170,7 +171,15 @@ Poll interval: roughly every 30–60s while a journey is active.
    paths behave as in §5. A simulator or emulator result is not a pass. Also
    fixed: the Android tracker `cancel()` is guarded, and `start()` after
    `stop()` is a no-op on both platforms.
-4. UI build — once UX reference screenshots are in.
+4. UI build — built; checked in demo mode and on the iOS simulator; not run against live RTT data. Core screens on both
+   platforms (home with nearest station, confirm, tracking with a route strip, ringing, ended, settings) in a
+   dark and a light theme (orange `#F36509`, near-black `#201D1C`, teal `#015D67`; Anton and Doto fonts), a
+   debug demo mode needing no token, and screenshots in `docs/ui-screenshots/`. The Android screens compiled,
+   passed tests and lint, but were never seen (no emulator), so there are no Android screenshots yet. Not done:
+   a live check against RTT (no token yet), alarm delivery (the iOS ring signal, the AlarmKit button text and
+   tint and the Settings test alarm are unit-tested but not checked on a device), and background tracking (Stage 5).
+4b. Map screen — own spec: the route map from the UX reference, with its attribution, once a map
+   library is chosen.
 5. Background-reliability hardening — dedicated stage; this is the #1
    failure mode across every competitor found in research.
 6. Closed beta (TestFlight / Play internal testing).

@@ -13,8 +13,10 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private class FakeTransport(private val reply: () -> HttpResult) : HttpTransport {
     var lastHeaders: Map<String, String> = emptyMap()
+    var lastUrl = ""
 
     override suspend fun get(url: String, headers: Map<String, String>): HttpResult {
+        lastUrl = url
         lastHeaders = headers
         return reply()
     }
@@ -132,5 +134,23 @@ class RttProviderTest {
     fun departureBoard_withNoServicesKey_isEmpty() = runBlocking<Unit> {
         val board = provider { HttpResult(200, "{}") }.departureBoard(waterloo, Instant.parse("2026-09-13T14:00:00Z"))
         assertEquals(emptyList<Any>(), board)
+    }
+
+    private val edinburgh = Station("EDB", "Edinburgh", 55.9521, -3.1894)
+
+    @Test
+    fun departureBoard_sendsFilterToWhenCallingAtIsGiven() = runBlocking<Unit> {
+        val transport = FakeTransport { HttpResult(204, "") }
+        RttProvider("token", transport).departureBoard(waterloo, Instant.parse("2026-09-13T14:00:00Z"), edinburgh)
+        assertTrue(transport.lastUrl.contains("/gb-nr/location?"))
+        assertTrue(transport.lastUrl.contains("filterTo=EDB"))
+        assertTrue(transport.lastUrl.contains("code=WAT"))
+    }
+
+    @Test
+    fun departureBoard_omitsFilterToByDefault() = runBlocking<Unit> {
+        val transport = FakeTransport { HttpResult(204, "") }
+        RttProvider("token", transport).departureBoard(waterloo, Instant.parse("2026-09-13T14:00:00Z"))
+        assertTrue(!transport.lastUrl.contains("filterTo"))
     }
 }

@@ -96,7 +96,7 @@ final class FakeProvider: TrainDataProvider {
     private(set) var requestedIds: [String] = []
 
     func searchStations(query: String) async throws -> [Station] { throw ProviderError.notImplemented("fake") }
-    func departureBoard(station: Station, from: Date) async throws -> [Service] { throw ProviderError.notImplemented("fake") }
+    func departureBoard(station: Station, from: Date, callingAt: Station?) async throws -> [Service] { throw ProviderError.notImplemented("fake") }
 
     func serviceDetails(serviceId: String, date: Date) async throws -> Service {
         calls += 1

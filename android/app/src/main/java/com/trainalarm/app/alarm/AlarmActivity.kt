@@ -3,37 +3,32 @@ package com.trainalarm.app.alarm
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import com.trainalarm.app.R
+import com.trainalarm.app.AppEnvironment
+import com.trainalarm.app.SessionPhase
+import com.trainalarm.app.ui.RingingScreen
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
-/** Shown over the lock screen while the alarm rings. Placeholder UI until Stage 4. */
+/**
+ * Shown over the lock screen while the alarm rings. If the process was started by the alarm itself
+ * (no session in memory, resume is Stage 5) it shows the screen without a countdown.
+ */
 class AlarmActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setShowWhenLocked(true)
         setTurnScreenOn(true)
+        // The alarm must stay stoppable even if the app state cannot be built (for example, the process was
+        // started by the alarm itself and loading the stations failed): then the screen has no countdown.
+        val model = runCatching { AppEnvironment.get(this, null).model }.getOrNull()
         setContent {
-            MaterialTheme {
-                Surface(Modifier.fillMaxSize()) {
-                    Column(Modifier.fillMaxSize().padding(24.dp), Arrangement.Center, Alignment.CenterHorizontally) {
-                        Text(stringResource(R.string.alarm_title))
-                        Button(onClick = {
-                            startService(AlarmService.stopIntent(this@AlarmActivity))
-                            finish()
-                        }) { Text(stringResource(R.string.alarm_stop)) }
-                    }
+            RingingScreen(model?.to?.name.orEmpty(), model?.display?.eta) {
+                // Silence first: ending the session can wait on a network read. MainScope outlives this activity.
+                startService(AlarmService.stopIntent(this@AlarmActivity))
+                if (model != null && (model.phase == SessionPhase.Ringing || model.phase == SessionPhase.Tracking)) {
+                    MainScope().launch { model.imOff() }
                 }
+                finish()
             }
         }
     }

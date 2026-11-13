@@ -23,6 +23,7 @@ android/.cxx/
 # Environment / secrets
 .env
 *.local.properties
+ios/Config/Secrets.xcconfig
 
 # Station generator downloads
 tools/stations/.cache/

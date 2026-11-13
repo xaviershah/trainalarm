@@ -27,7 +27,7 @@ final class AlarmKitScheduler: AlarmScheduler {
         let previous = currentId
         let id = UUID()
         // Make before break: if this throws, the previous alarm is still armed.
-        try await client.schedule(id: id, fireAt: fire, title: "TrainAlarm")
+        try await client.schedule(id: id, fireAt: fire, title: AlarmWording.title)
         if let previous { try? client.cancel(id: previous) }
         defaults.set(id.uuidString, forKey: idKey)
         log.info("scheduled alarm \(id.uuidString) for \(fire.description)")

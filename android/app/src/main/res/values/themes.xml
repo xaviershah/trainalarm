@@ -1,3 +1,5 @@
 <resources>
-    <style name="Theme.TrainAlarm" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.TrainAlarm" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#CFC3B6</item>
+    </style>
 </resources>

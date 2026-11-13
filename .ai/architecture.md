@@ -29,7 +29,7 @@ One folder/package per architectural layer, identical on both platforms:
 | Station directory (`StationDirectory`: CRS lookup, name search) | `Providers/` | `provider/` | done |
 | Tracking, ETA, live-change logic | `Tracking/` | `tracking/` | 2 (done) |
 | Alarm delivery (`AlarmKitScheduler` / `ExactAlarmScheduler` behind `AlarmScheduler`; Android device test pending) | `Alarm/` | `alarm/` | 3 |
-| UI / app entry | `App/` | package root | 4 |
+| UI: screens, `SessionModel`, theme, composition root (`AppEnvironment`) | `App/`, `App/UI/`, `App/Theme/` | package root, `ui/`, `theme/` | 4 (done) |
 
 A new feature is built on **both** platforms, in the matching layer.
 
@@ -47,9 +47,16 @@ A new feature is built on **both** platforms, in the matching layer.
   exact-alarm permission. Highest-risk area; needs real-device testing.
 - **Spec-first stages.** Each stage in spec §8 has a written plan before code;
   its "ships when" line is the acceptance criterion.
+- **State management.** One `SessionModel` per platform (iOS `@MainActor @Observable`;
+  Android Compose `mutableStateOf` with private setters). It owns the one `JourneyTracker`,
+  collects its events once and exposes display state; it holds no tracking logic. Screens
+  read it and call its methods. Phases: selecting, confirming, tracking, ringing, ended.
+- **Dependency injection.** Constructor injection and one composition root per platform
+  (`AppEnvironment`), which builds the real app or, in debug builds only, the demo app.
+  No DI framework.
+- **Station search** runs on `StationDirectory` through `DirectoryBackedProvider`, which
+  also gives RTT's stations their real coordinates. `RttProvider.searchStations` stays unwired.
 
 ## TBD
 
-- State management / UI architecture pattern (MVVM etc.) — decide at Stage 4.
-- Dependency injection approach.
 - Minimum iOS version acceptability (spec §7).
