@@ -1,0 +1,3 @@
+// Optional, gitignored. Copy Secrets.xcconfig.example to Secrets.xcconfig and add your token.
+// #include? means a missing file is not an error, so CI and fresh checkouts still build.
+#include? "Secrets.xcconfig"

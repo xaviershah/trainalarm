@@ -78,7 +78,7 @@ class FakeProvider : TrainDataProvider {
     override suspend fun searchStations(query: String): List<Station> =
         throw ProviderError.NotImplemented("fake")
 
-    override suspend fun departureBoard(station: Station, from: Instant): List<Service> =
+    override suspend fun departureBoard(station: Station, from: Instant, callingAt: Station?): List<Service> =
         throw ProviderError.NotImplemented("fake")
 
     override suspend fun serviceDetails(serviceId: String, date: LocalDate): Service {

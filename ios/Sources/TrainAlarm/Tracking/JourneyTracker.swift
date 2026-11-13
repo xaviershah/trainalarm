@@ -81,7 +81,7 @@ actor JourneyTracker {
             result = .failure(.other)
         }
         guard !Task.isCancelled else { return }
-        await apply(monitor.step(state, Observation(result: result, now: clock.now(), fix: fix)))
+        await apply(monitor.step(state, TickObservation(result: result, now: clock.now(), fix: fix)))
     }
 
     private static func failureKind(of error: ProviderError) -> FailureKind {

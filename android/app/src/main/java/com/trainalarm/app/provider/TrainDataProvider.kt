@@ -19,8 +19,11 @@ interface TrainDataProvider {
     /** Find stations matching a free-text search (e.g. a name the user typed). */
     suspend fun searchStations(query: String): List<Station>
 
-    /** Live/scheduled departures from [station] at or after [from]. */
-    suspend fun departureBoard(station: Station, from: Instant): List<Service>
+    /**
+     * Live/scheduled departures from [station] at or after [from]. With [callingAt] set, only trains
+     * that subsequently call at that station are returned.
+     */
+    suspend fun departureBoard(station: Station, from: Instant, callingAt: Station? = null): List<Service>
 
     /**
      * The full stop-by-stop detail for one specific service, including

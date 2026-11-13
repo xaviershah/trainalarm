@@ -12,6 +12,9 @@
 | Location | Core Location, background `location` mode |
 | Networking/JSON | `URLSession` + `JSONSerialization` (no third-party deps) |
 | Concurrency | `async`/`await` |
+| UI state | `@Observable` `SessionModel`; settings in `UserDefaults` |
+| Fonts | Anton and Doto (SIL OFL 1.1), bundled in `Sources/TrainAlarm/Resources/Fonts`; the Doto runtime name is `Doto-Black_Bold` |
+| Secrets | Optional gitignored `ios/Config/Secrets.xcconfig`, applied to the Debug configuration only and read through Info.plist (`RTTAccessToken`) |
 
 ## Android
 
@@ -24,6 +27,9 @@
 | Alarms | `setAlarmClock` + `SCHEDULE_EXACT_ALARM`, `mediaPlayback` foreground service, `USE_FULL_SCREEN_INTENT` |
 | Networking/JSON | `org.json` (platform), no third-party HTTP client |
 | Concurrency | Kotlin coroutines 1.9.0 |
+| UI state | Compose state in `SessionModel`; settings in `SharedPreferences` |
+| Fonts | Anton and Doto (variable font at weight 700, SIL OFL 1.1) in `res/font` |
+| Secrets | Optional `rtt.accessToken` in gitignored `local.properties`, as `BuildConfig.RTT_ACCESS_TOKEN` in the `debug` build type only (`release` is empty) |
 
 ## Tooling
 
@@ -33,6 +39,9 @@
 
 - **Realtime Trains API** (bearer token). Schema: `downloads/RTT.GH.API-spec`.
   The legacy `api.rtt.io` shuts down 30 Sep 2026; don't use it.
+- **RTT token handling.** The token is build-time config for the developer's own devices only, and only debug builds read it. RTT's
+  terms forbid shipping it inside a distributed app, so a backend proxy is needed before any beta.
+  Demo mode (debug builds) needs no token. Demo code is not in release builds.
 - CI: GitHub Actions (`macos-15` for iOS, `ubuntu-latest` + JDK 17 for Android).
 
 ## Error handling
@@ -52,11 +61,13 @@
 ## Logging
 
 `os.Logger` (iOS, category `alarm`) and `android.util.Log` (Android alarm code).
-The Android tracker reports failures through an injectable `onAlarmError`
-callback; Stage 4 wires it to `Log`.
+The Android tracker reports a failed alarm cancel through an injectable
+`onAlarmError` callback, which the Stage 4 composition root wires to `Log.e`.
+A failed alarm schedule is not logged: it surfaces as the "alarm not set" state
+in the app (`TrackingDisplay.alarmNotSet`).
 
 ## TBD
 
-- Secrets handling for the RTT token (Keychain / EncryptedSharedPreferences?).
+- A backend proxy that holds the RTT token, before any beta.
 - Swift 6 language mode.
 - Monetisation / analytics SDKs (none planned).

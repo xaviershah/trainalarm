@@ -45,13 +45,13 @@ final class MonitorHarness {
     @discardableResult
     func poll(_ service: Service, advancing seconds: TimeInterval = 45, fix: FixSpec? = nil) -> [TrackerEvent] {
         now = now.addingTimeInterval(seconds)
-        return apply(monitor.step(state, Observation(result: .service(service), now: now, fix: stamp(fix))))
+        return apply(monitor.step(state, TickObservation(result: .service(service), now: now, fix: stamp(fix))))
     }
 
     @discardableResult
     func fail(_ kind: FailureKind = .network, advancing seconds: TimeInterval = 45, fix: FixSpec? = nil) -> [TrackerEvent] {
         now = now.addingTimeInterval(seconds)
-        return apply(monitor.step(state, Observation(result: .failure(kind), now: now, fix: stamp(fix))))
+        return apply(monitor.step(state, TickObservation(result: .failure(kind), now: now, fix: stamp(fix))))
     }
 
     private func stamp(_ spec: FixSpec?) -> LocationFix? {

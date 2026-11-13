@@ -30,10 +30,13 @@ final class RttProvider: TrainDataProvider {
         )
     }
 
-    func departureBoard(station: Station, from: Date) async throws -> [Service] {
+    func departureBoard(station: Station, from: Date, callingAt: Station?) async throws -> [Service] {
         let iso = ISO8601DateFormatter().string(from: from)
+        var query = ["code": station.id, "timeFrom": iso]
+        // filterTo: only trains that subsequently call at this location (/gb-nr/location in the RTT spec).
+        if let callingAt { query["filterTo"] = callingAt.id }
         // 204 is "valid query, no services found": an empty board, not an error.
-        guard let json = try await getJSON(path: "/gb-nr/location", query: ["code": station.id, "timeFrom": iso]) else {
+        guard let json = try await getJSON(path: "/gb-nr/location", query: query) else {
             return []
         }
         let services = (json["services"] as? [Any] ?? []).compactMap { $0 as? [String: Any] }

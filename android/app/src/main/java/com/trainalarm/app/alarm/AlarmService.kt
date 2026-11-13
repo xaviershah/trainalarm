@@ -29,17 +29,20 @@ class AlarmService : Service() {
             getSystemService(NotificationManager::class.java).notify(AlarmNotifications.NOTIFICATION_ID, notification)
         }
         AlarmPlayer.start(this) { stopRinging() }
+        AlarmEvents.started()
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
         AlarmPlayer.stop()
+        AlarmEvents.stopped()
         super.onDestroy()
     }
 
     private fun stopRinging() {
         Log.i(TAG, "alarm stopped")
         AlarmPlayer.stop()
+        AlarmEvents.stopped()
         getSystemService(NotificationManager::class.java).cancel(AlarmNotifications.NOTIFICATION_ID)
         stopSelf()
     }

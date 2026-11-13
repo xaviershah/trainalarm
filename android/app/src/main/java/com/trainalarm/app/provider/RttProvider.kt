@@ -50,12 +50,15 @@ class RttProvider(
         )
     }
 
-    override suspend fun departureBoard(station: Station, from: Instant): List<Service> {
+    override suspend fun departureBoard(station: Station, from: Instant, callingAt: Station?): List<Service> {
+        // filterTo: only trains that subsequently call at this location (/gb-nr/location in the RTT spec).
+        val query = buildMap {
+            put("code", station.id)
+            put("timeFrom", from.toString())
+            if (callingAt != null) put("filterTo", callingAt.id)
+        }
         // 204 is "valid query, no services found": an empty board, not an error.
-        val json = getJson(
-            "/gb-nr/location",
-            mapOf("code" to station.id, "timeFrom" to from.toString())
-        ) ?: return emptyList()
+        val json = getJson("/gb-nr/location", query) ?: return emptyList()
         val services = json.optJSONArray("services") ?: JSONArray()
         return (0 until services.length())
             .mapNotNull { services.optJSONObject(it) }

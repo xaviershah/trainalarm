@@ -5,6 +5,7 @@ import SwiftUI
 struct DevAlarmView: View {
     @State private var seconds = "60"
     @State private var status = "Idle"
+    @State private var lastRing = "none yet"
     @State private var scheduler = AlarmKitScheduler(client: SystemAlarmKitClient())
     private let client = SystemAlarmKitClient()
 
@@ -19,8 +20,10 @@ struct DevAlarmView: View {
                 }
                 Button("Check authorization") { status = "Authorization: \(client.authorization)" }
                 Text(status).font(.footnote).foregroundStyle(.secondary)
+                Text("Ring signal: \(lastRing)").font(.footnote).foregroundStyle(.secondary)
             }
         }
+        .task { for await _ in AlarmRingSignal.stream() { lastRing = Date().formatted(date: .omitted, time: .standard) } }
     }
 
     private func schedule(after delay: TimeInterval) async {
