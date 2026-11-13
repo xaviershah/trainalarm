@@ -161,6 +161,26 @@ final class SessionModelTests: XCTestCase {
         XCTAssertEqual(h.model.alarmAt, ServiceBuilder.time("08:37:00"))
     }
 
+    func testEveryMinuteFromOneToThirtyIsAcceptedAndMovesTheAlarmTime() async throws {
+        let h = try makeHarness()
+        await confirmed(h, lead: nil)
+        h.model.setLead(1)
+        XCTAssertEqual(h.model.alarmAt, ServiceBuilder.time("08:51:00"))
+        h.model.setLead(7)
+        XCTAssertEqual(h.model.alarmAt, ServiceBuilder.time("08:45:00"))
+        h.model.setLead(30)
+        XCTAssertEqual(h.model.alarmAt, ServiceBuilder.time("08:22:00"))
+    }
+
+    func testALeadTimeOutsideOneToThirtyIsIgnored() async throws {
+        let h = try makeHarness()
+        await confirmed(h, lead: 10)
+        h.model.setLead(0)
+        XCTAssertEqual(h.model.confirm?.leadMinutes, 10)
+        h.model.setLead(31)
+        XCTAssertEqual(h.model.confirm?.leadMinutes, 10)
+    }
+
     func testASavedDefaultLeadTimePrefillsTheChoice() async throws {
         let h = try makeHarness()
         h.settings.setDefaultLeadMinutes(10)

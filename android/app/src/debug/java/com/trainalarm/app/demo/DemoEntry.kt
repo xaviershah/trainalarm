@@ -25,6 +25,6 @@ object DemoEntry {
             clock = clock, permissions = DemoPermissions(), settings = settings, scope = scope
         )
         modelRef = model
-        return DemoSetup(model, scenario?.opensSettings ?: false) { scenario?.apply(model, directory, Instant.now()) }
+        return DemoSetup(model, scenario?.opensSettings ?: false) { scenario?.apply(model, settings, directory, Instant.now()) }
     }
 }

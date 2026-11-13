@@ -36,7 +36,7 @@ struct AppEnvironment {
             return AppEnvironment(
                 model: model, settings: settings, liveDataSetUp: true, isDemo: true,
                 opensSettings: scenario?.opensSettings ?? false,
-                applyScenario: scenario.map { s in { await s.apply(to: model, directory: directory, now: Date()) } })
+                applyScenario: scenario.map { s in { await s.apply(to: model, settings: settings, directory: directory, now: Date()) } })
         }
         #endif
 

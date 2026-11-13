@@ -1,13 +1,14 @@
 #!/bin/bash
 # Captures every demo scenario on the iOS simulator, in both themes, into docs/ui-screenshots/ios/.
 # Usage: tools/screenshots/ios.sh ["iPhone 17"]
+# Optional: SCENARIOS="confirm settings" tools/screenshots/ios.sh   (a subset; default: all 12)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 DEVICE="${1:-iPhone 17}"
 BUNDLE="com.trainalarm.app"
 OUT="docs/ui-screenshots/ios"
-SCENARIOS="home board confirm tracking tracking-late cancelled dropped feed-lost alarm-not-set ringing ended settings"
+SCENARIOS="${SCENARIOS:-home board confirm tracking tracking-late cancelled dropped feed-lost alarm-not-set ringing ended settings}"
 BUILD="$(mktemp -d)"
 trap 'rm -rf "$BUILD"; xcrun simctl status_bar "$DEVICE" clear 2>/dev/null || true' EXIT
 
