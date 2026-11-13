@@ -2,13 +2,14 @@
 # Captures every demo scenario on a running Android emulator, in both themes, into
 # docs/ui-screenshots/android/. Start the emulator first (see the Stage 4 plan, Task 12 Step 0).
 # Usage: tools/screenshots/android.sh
+# Optional: SCENARIOS="confirm settings" tools/screenshots/android.sh   (a subset; default: all 12)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 ADB="$ANDROID_HOME/platform-tools/adb"
 OUT="docs/ui-screenshots/android"
-SCENARIOS="home board confirm tracking tracking-late cancelled dropped feed-lost alarm-not-set ringing ended settings"
+SCENARIOS="${SCENARIOS:-home board confirm tracking tracking-late cancelled dropped feed-lost alarm-not-set ringing ended settings}"
 
 if ! "$ADB" devices | grep -q "emulator-.*device$"; then
   echo "No running emulator. Start one first." >&2

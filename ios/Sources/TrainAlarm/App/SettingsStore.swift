@@ -6,7 +6,8 @@ enum ThemeChoice: String, CaseIterable { case system, dark, light }
 /// User settings, kept in UserDefaults. See spec sections 4 and 5.
 @Observable
 final class SettingsStore {
-    static let leadChoices = [5, 10, 15, 20, 25, 30]
+    /// Every whole minute from 1 to 30.
+    static let leadChoices = Array(1...30)
 
     private(set) var theme: ThemeChoice
     /// nil until the user has chosen a lead time (first run).

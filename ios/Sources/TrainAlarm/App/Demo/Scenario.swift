@@ -16,6 +16,11 @@ enum Scenario: String, CaseIterable {
         return Scenario(rawValue: arguments[index + 1])
     }
 
+    /// The default lead time the `settings` scenario shows, and the lead time of the `confirm` scenario.
+    /// Both are not multiples of 5, so the screenshots show a minute that has no label of its own.
+    static let settingsLead = 7
+    static let confirmLead = 7
+
     var opensSettings: Bool { self == .settings }
 
     /// The screens with a route strip show a train that has already left, so the marker is part-way along.
@@ -35,7 +40,8 @@ enum Scenario: String, CaseIterable {
 
     /// Drives the model from its empty state to this scenario, using the demo trains from KGX to EDB.
     @MainActor
-    func apply(to model: SessionModel, directory: StationDirectory, now: Date) async {
+    func apply(to model: SessionModel, settings: SettingsStore, directory: StationDirectory, now: Date) async {
+        if self == .settings { settings.setDefaultLeadMinutes(Self.settingsLead) }
         guard self != .home, self != .settings,
               let from = directory.station(crs: "KGX"), let to = directory.station(crs: "EDB") else { return }
         model.selectFrom(from)
@@ -44,7 +50,7 @@ enum Scenario: String, CaseIterable {
         if self == .board { return }
         guard case let .loaded(services) = model.board else { return }
         await model.choose(services[0])
-        model.setLead(15)
+        model.setLead(self == .confirm ? Self.confirmLead : 15)
         if self == .confirm { return }
         await model.start()
         // The tracker publishes its own start-up events. Let them arrive first, or they overwrite ours.

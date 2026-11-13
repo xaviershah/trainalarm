@@ -216,6 +216,32 @@ class JourneyMonitorTest {
         assertTrue(h.state.alarmDue)
     }
 
+    // A one-minute lead time (the ruler allows 1 to 30 minutes)
+
+    @Test
+    fun aOneMinuteLeadSchedulesOneMinuteBeforeTheEta() {
+        val h = MonitorHarness(leadTime = 60.0)
+        assertEquals(listOf(etaChanged(null, "08:52:00", "08:51:00")), h.start(happy()))
+        assertEquals(listOf(t("08:51:00")), h.scheduled)
+        assertTrue(!h.state.alarmDue)
+    }
+
+    @Test
+    fun aOneMinuteLeadStartedInsideTheLastMinuteSchedulesNow() {
+        val h = MonitorHarness(leadTime = 60.0, start = t("08:51:30"))  // the fire time, 08:51:00, is already past
+        assertEquals(listOf(etaChanged(null, "08:52:00", "08:51:30")), h.start(happy()))
+        assertEquals(listOf(t("08:51:30")), h.scheduled)
+        assertTrue(h.state.alarmDue)
+    }
+
+    @Test
+    fun aOneMinuteEtaSlipReschedulesAOneMinuteLead() {
+        val h = MonitorHarness(leadTime = 60.0)
+        h.start(happy())
+        assertEquals(listOf(etaChanged("08:52:00", "08:53:00", "08:52:00")), h.poll(happy("08:53:00")))
+        assertEquals(listOf(t("08:51:00"), t("08:52:00")), h.scheduled)
+    }
+
     // Destination resolution
 
     @Test

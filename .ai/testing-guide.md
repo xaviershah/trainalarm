@@ -69,6 +69,7 @@ python3 -m unittest discover -s tools/stations -p "test_*.py" -v
   themes and saves the PNGs to `docs/ui-screenshots/ios/`; look at them against `docs/ui-mockup/`.
   `tools/screenshots/android.sh` does the same on a running emulator but has never been run, so the
   Android screens have not been seen. A screenshot is never a pass for alarm delivery.
+- **Screenshots:** `tools/screenshots/ios.sh` retakes all 12 demo scenarios in both themes; set `SCENARIOS="confirm settings"` to retake only some, so the other PNGs stay untouched (the clock text inside the images changes on every run). The Android script takes the same filter and has never been run (no emulator).
 - **Demo mode** (debug builds, no RTT token) runs the whole flow on scripted trains; scenario tests in
   `android/app/src/testDebug/.../demo/ScenarioTest.kt` and `ios/Tests/TrainAlarmTests/App/ScenarioTests.swift` pin each named scenario.
 - In a fresh git worktree `android/local.properties` is absent (it is
