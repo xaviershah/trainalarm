@@ -13,7 +13,7 @@ Rule: nothing is done without something that checks it — a test, a build or
 | Test naming | `test<Behaviour>` (e.g. `testBestArrivalPrefersLiveEstimateOverSchedule`) |
 | Fixtures | `ios/Tests/TrainAlarmTests/Fixtures/*.json`, loaded via `Bundle(for:)` with subdirectory `Fixtures` |
 
-Run it (needs full Xcode 26; CI runs the same tests on every push/PR that touches `ios/`):
+Run it (needs full Xcode 26; CI runs the same tests on every push/PR that touches `ios/`). CI selects Xcode 26.3 explicitly, because the macos-15 runner's default Xcode (16.4) has no iOS 26 SDK:
 ```bash
 cd ios
 xcodegen generate
