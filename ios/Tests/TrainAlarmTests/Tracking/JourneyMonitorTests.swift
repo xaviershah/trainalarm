@@ -188,6 +188,30 @@ final class JourneyMonitorTests: XCTestCase {
         XCTAssertTrue(h.state.alarmDue)
     }
 
+    // MARK: A one-minute lead time (the ruler allows 1 to 30 minutes)
+
+    func testAOneMinuteLeadSchedulesOneMinuteBeforeTheEta() {
+        let h = MonitorHarness(leadTime: 60)
+        XCTAssertEqual(h.start(happy()), [.etaChanged(oldEta: nil, newEta: t("08:52:00"), fireAt: t("08:51:00"))])
+        XCTAssertEqual(h.scheduled, [t("08:51:00")])
+        XCTAssertFalse(h.state.alarmDue)
+    }
+
+    func testAOneMinuteLeadStartedInsideTheLastMinuteSchedulesNow() {
+        let h = MonitorHarness(leadTime: 60, start: t("08:51:30"))  // the fire time, 08:51:00, is already past
+        XCTAssertEqual(h.start(happy()), [.etaChanged(oldEta: nil, newEta: t("08:52:00"), fireAt: t("08:51:30"))])
+        XCTAssertEqual(h.scheduled, [t("08:51:30")])
+        XCTAssertTrue(h.state.alarmDue)
+    }
+
+    func testAOneMinuteEtaSlipReschedulesAOneMinuteLead() {
+        let h = MonitorHarness(leadTime: 60)
+        h.start(happy())
+        XCTAssertEqual(h.poll(happy("08:53:00")),
+                       [.etaChanged(oldEta: t("08:52:00"), newEta: t("08:53:00"), fireAt: t("08:52:00"))])
+        XCTAssertEqual(h.scheduled, [t("08:51:00"), t("08:52:00")])
+    }
+
     // MARK: Destination resolution
 
     func testDestinationOnlyBeforeTheBoardingStopIsLost() {

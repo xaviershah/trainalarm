@@ -6,6 +6,7 @@ import XCTest
 final class ScenarioTests: XCTestCase {
     private let json = #"[{"crs":"KGX","name":"London Kings Cross","lat":51.5309,"lon":-0.1233},{"crs":"PBO","name":"Peterborough","lat":52.5748,"lon":-0.2504},{"crs":"EDB","name":"Edinburgh","lat":55.9521,"lon":-3.1894}]"#
     private var suite = ""
+    private var settings: SettingsStore!
 
     override func setUp() { suite = "scenario-test-\(UUID().uuidString)" }
     override func tearDown() { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
@@ -13,15 +14,16 @@ final class ScenarioTests: XCTestCase {
     private func make() throws -> (SessionModel, StationDirectory, FakeClock) {
         let directory = try StationDirectory.parse(Data(json.utf8))
         let clock = FakeClock(start: Date(timeIntervalSince1970: 1_783_000_000))
+        settings = SettingsStore(defaults: UserDefaults(suiteName: suite)!)
         let model = SessionModel(provider: DemoProvider(clock: clock), scheduler: NoopAlarmScheduler(), directory: directory,
                                  location: FakeLocationSource(), clock: clock, permissions: DemoPermissions(),
-                                 settings: SettingsStore(defaults: UserDefaults(suiteName: suite)!))
+                                 settings: settings)
         return (model, directory, clock)
     }
 
     private func run(_ scenario: Scenario) async throws -> (SessionModel, Date) {
         let (model, directory, clock) = try make()
-        await scenario.apply(to: model, directory: directory, now: clock.now())
+        await scenario.apply(to: model, settings: settings, directory: directory, now: clock.now())
         return (model, clock.now())
     }
 
@@ -68,8 +70,20 @@ final class ScenarioTests: XCTestCase {
         XCTAssertEqual(services.count, 3)
         let (confirmModel, _) = try await run(.confirm)
         XCTAssertEqual(confirmModel.phase, .confirming)
-        XCTAssertEqual(confirmModel.confirm?.leadMinutes, 15)
+        XCTAssertEqual(confirmModel.confirm?.leadMinutes, 7)
         XCTAssertNotNil(confirmModel.alarmAt)
+    }
+
+    func testTheConfirmScenarioUsesAnOddLeadTimeAndTheTrackingScenariosKeepFifteen() async throws {
+        let (confirmModel, _) = try await run(.confirm)
+        XCTAssertEqual(confirmModel.confirm?.leadMinutes, 7)
+        let (trackingModel, _) = try await run(.tracking)
+        XCTAssertEqual(trackingModel.confirm?.leadMinutes, 15)
+    }
+
+    func testTheSettingsScenarioSetsTheDefaultLeadTimeToSeven() async throws {
+        _ = try await run(.settings)
+        XCTAssertEqual(settings.defaultLeadMinutes, 7)
     }
 
     func testTrackingScenariosShowTheirStates() async throws {

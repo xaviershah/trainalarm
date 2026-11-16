@@ -58,7 +58,7 @@ struct TrackingView: View {
                 Text("Alarm").font(.caption).foregroundStyle(c.muted)
                 if let alarm = d.alarmAt { DotTime(hm: TimeText.clock(alarm), size: 34, color: c.head) }
                 if let lead = model.confirm?.leadMinutes {
-                    Text("\(lead) minutes before arrival").font(.footnote).foregroundStyle(c.muted)
+                    Text(leadValueLine(lead)).font(.footnote).foregroundStyle(c.muted)
                 }
             }
             Spacer()

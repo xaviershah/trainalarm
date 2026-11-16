@@ -27,10 +27,39 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(second.defaultLeadMinutes, 20)
     }
 
-    func testALeadTimeOutsideTheChoicesIsIgnored() {
+    func testTheChoicesAreEveryMinuteFromOneToThirty() {
+        XCTAssertEqual(SettingsStore.leadChoices, Array(1...30))
+    }
+
+    func testOnlyLeadTimesFromOneToThirtyAreAccepted() {
         let store = SettingsStore(defaults: defaults)
-        store.setDefaultLeadMinutes(17)
+        store.setDefaultLeadMinutes(0)
         XCTAssertNil(store.defaultLeadMinutes)
+        store.setDefaultLeadMinutes(31)
+        XCTAssertNil(store.defaultLeadMinutes)
+        store.setDefaultLeadMinutes(1)
+        XCTAssertEqual(store.defaultLeadMinutes, 1)
+        store.setDefaultLeadMinutes(30)
+        XCTAssertEqual(store.defaultLeadMinutes, 30)
+        store.setDefaultLeadMinutes(17)
+        XCTAssertEqual(store.defaultLeadMinutes, 17)
+    }
+
+    func testAnOldStoredFiveMinuteStepStillReads() {
+        defaults.set(15, forKey: "defaultLeadMinutes")
+        XCTAssertEqual(SettingsStore(defaults: defaults).defaultLeadMinutes, 15)
+    }
+
+    func testAStoredSeventeenNowReadsBackAsSeventeen() {
+        defaults.set(17, forKey: "defaultLeadMinutes")
+        XCTAssertEqual(SettingsStore(defaults: defaults).defaultLeadMinutes, 17)
+    }
+
+    func testAStoredZeroOrThirtyOneReadsAsUnset() {
+        for stored in [0, 31] {
+            defaults.set(stored, forKey: "defaultLeadMinutes")
+            XCTAssertNil(SettingsStore(defaults: defaults).defaultLeadMinutes, "stored \(stored)")
+        }
     }
 
     func testAnUnknownStoredThemeFallsBackToSystem() {

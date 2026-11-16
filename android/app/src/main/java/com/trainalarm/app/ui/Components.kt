@@ -38,7 +38,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.setProgress
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -50,7 +49,6 @@ import com.trainalarm.app.theme.Doto
 import com.trainalarm.app.theme.LocalColors
 import com.trainalarm.app.theme.PaletteTokens
 import kotlin.math.cos
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -124,62 +122,107 @@ fun BigButton(title: String, onClick: () -> Unit, modifier: Modifier = Modifier,
     }
 }
 
+/** "1 minute", "7 minutes". */
+fun minutesText(n: Int): String = if (n == 1) "1 minute" else "$n minutes"
+
+/** The line above the lead-time ruler: what is chosen, in words. */
+fun leadValueLine(minutes: Int?): String = minutes?.let { "${minutesText(it)} before arrival" } ?: "Not chosen"
+
+/**
+ * Where the ruler puts each choice, in pixels from its left edge. Pure, so it is tested without drawing:
+ * the ticks, the marker, the labels and tap/drag all use these same positions.
+ */
+data class RulerLayout(val count: Int, val width: Float, val inset: Float) {
+    val spacing: Float get() = if (count > 1) maxOf(0f, width - inset * 2) / (count - 1) else 0f
+
+    /** The x of the choice at [index]. */
+    fun x(index: Int): Float = inset + spacing * index
+
+    /** The choice nearest to [x], clamped to the first and last. */
+    fun indexAt(x: Float): Int {
+        if (count < 2 || spacing <= 0f) return 0
+        val raw = (x - inset) / spacing
+        return if (raw.isFinite()) raw.roundToInt().coerceIn(0, count - 1) else 0
+    }
+
+    companion object {
+        /** Ticks at multiples of 5 are taller and carry a label. */
+        fun isMajor(minutes: Int): Boolean = minutes % 5 == 0
+    }
+}
+
+/** The choice for a TalkBack progress value (an index into [choices]), clamped to the ends. */
+fun leadForProgress(choices: List<Int>, value: Float): Int = choices[value.roundToInt().coerceIn(0, choices.size - 1)]
+
 /** The next choice up or down from [selected], clamped at both ends. Nothing chosen starts at the first choice. */
 fun stepLead(choices: List<Int>, selected: Int?, up: Boolean): Int {
     val index = selected?.let { choices.indexOf(it) }?.coerceAtLeast(0) ?: 0
     return choices[if (up) minOf(choices.size - 1, index + 1) else maxOf(0, index - 1)]
 }
 
-/** Picks a lead time from [choices]: tap or drag along the tick ruler. The marker sits on the choice. */
+/** Picks a lead time from [choices]: tap or drag along the tick ruler. The marker sits on the choice, and a line above
+ *  the ruler says what is chosen. One tick per choice; ticks at multiples of 5 are taller and labelled. */
 @Composable
 fun LeadRuler(choices: List<Int>, selected: Int?, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
     val c = LocalColors.current
     val inset = 16.dp
-    fun pick(x: Float, width: Float, insetPx: Float): Int {
-        val fraction = ((x - insetPx) / max(1f, width - insetPx * 2)).coerceIn(0f, 1f)
-        return choices[(fraction * (choices.size - 1)).roundToInt()]
-    }
+    val density = LocalDensity.current
+    fun layoutFor(widthPx: Float) = RulerLayout(choices.size, widthPx, with(density) { inset.toPx() })
     Column(
-        modifier.fillMaxWidth().semantics {
+        modifier.fillMaxWidth().clearAndSetSemantics {
             contentDescription = "Minutes before arrival"
-            stateDescription = selected?.let { "$it minutes" } ?: "not chosen"
+            stateDescription = selected?.let { minutesText(it) } ?: "not chosen"
             // Adjustable for TalkBack: the same steps as the iOS adjustable action, through the same onSelect.
             progressBarRangeInfo = ProgressBarRangeInfo(
                 (selected?.let { choices.indexOf(it) }?.coerceAtLeast(0) ?: 0).toFloat(), 0f..(choices.size - 1).toFloat(), choices.size - 2)
-            setProgress { value -> onSelect(choices[value.roundToInt().coerceIn(0, choices.size - 1)]); true }
+            setProgress { value -> onSelect(leadForProgress(choices, value)); true }
             customActions = listOf(
                 CustomAccessibilityAction("Increase minutes") { onSelect(stepLead(choices, selected, up = true)); true },
                 CustomAccessibilityAction("Decrease minutes") { onSelect(stepLead(choices, selected, up = false)); true }
             )
         }
     ) {
+        Text(
+            leadValueLine(selected), fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+            color = if (selected == null) c.muted else c.head, modifier = Modifier.padding(bottom = 8.dp)
+        )
         Box(
             Modifier.fillMaxWidth().height(44.dp).clip(RoundedCornerShape(12.dp)).background(c.surface2)
-                .pointerInput(choices) { detectTapGestures { onSelect(pick(it.x, size.width.toFloat(), inset.toPx())) } }
-                .pointerInput(choices) { detectHorizontalDragGestures { change, _ -> onSelect(pick(change.position.x, size.width.toFloat(), inset.toPx())) } }
+                .pointerInput(choices) { detectTapGestures { onSelect(choices[layoutFor(size.width.toFloat()).indexAt(it.x)]) } }
+                .pointerInput(choices) {
+                    detectHorizontalDragGestures { change, _ -> onSelect(choices[layoutFor(size.width.toFloat()).indexAt(change.position.x)]) }
+                }
         ) {
             Canvas(Modifier.fillMaxSize()) {
-                var x = 4.5.dp.toPx()
-                while (x < size.width) {
-                    drawRect(c.muted, Offset(x, size.height * 0.28f), androidx.compose.ui.geometry.Size(1.5.dp.toPx(), size.height * 0.44f))
-                    x += 9.dp.toPx()
+                val layout = RulerLayout(choices.size, size.width, inset.toPx())
+                val tickWidth = 1.5.dp.toPx()
+                choices.forEachIndexed { index, minutes ->
+                    val height = size.height * if (RulerLayout.isMajor(minutes)) 0.52f else 0.36f
+                    drawRect(c.muted, Offset(layout.x(index) - tickWidth / 2, (size.height - height) / 2),
+                        androidx.compose.ui.geometry.Size(tickWidth, height))
                 }
                 val index = selected?.let { choices.indexOf(it) } ?: -1
                 if (index >= 0) {
-                    val usable = size.width - inset.toPx() * 2
-                    val markerX = inset.toPx() + usable * index / (choices.size - 1) - 1.5.dp.toPx()
-                    drawRect(c.accent, Offset(markerX, 0f), androidx.compose.ui.geometry.Size(3.dp.toPx(), size.height))
+                    drawRect(c.accent, Offset(layout.x(index) - 1.5.dp.toPx(), 0f),
+                        androidx.compose.ui.geometry.Size(3.dp.toPx(), size.height))
                 }
             }
         }
         BoxWithConstraints(Modifier.fillMaxWidth().height(22.dp).padding(top = 4.dp)) {
-            val usable = maxWidth - inset * 2
+            val layout = layoutFor(with(density) { maxWidth.toPx() })
             choices.forEachIndexed { index, minutes ->
-                Text(
-                    minutes.toString(), fontFamily = Doto, fontWeight = FontWeight.Bold, fontSize = 17.sp,
-                    color = if (minutes == selected) c.head else c.muted,
-                    modifier = Modifier.offset(x = inset + usable * (index.toFloat() / (choices.size - 1)) - 8.dp)
-                )
+                if (RulerLayout.isMajor(minutes)) {
+                    // A 32 dp slot centred on the tick, so two-digit labels sit under their tick.
+                    Box(
+                        Modifier.offset(x = with(density) { layout.x(index).toDp() } - 16.dp).width(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            minutes.toString(), fontFamily = Doto, fontWeight = FontWeight.Bold, fontSize = 17.sp,
+                            color = if (minutes == selected) c.head else c.muted
+                        )
+                    }
+                }
             }
         }
     }
@@ -192,7 +235,7 @@ fun AlarmDial(alarmAt: java.time.Instant?, arrival: java.time.Instant, lead: Int
     val cream = Color(0xFFF3ECE3)
     Box(
         modifier.aspectRatio(1f).clearAndSetSemantics {
-            contentDescription = lead?.let { "Alarm $it minutes before arrival" } ?: "No alarm time chosen"
+            contentDescription = lead?.let { "Alarm ${minutesText(it)} before arrival" } ?: "No alarm time chosen"
         },
         contentAlignment = Alignment.Center
     ) {

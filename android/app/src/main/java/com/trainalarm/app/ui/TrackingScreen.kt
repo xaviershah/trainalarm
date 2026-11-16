@@ -96,7 +96,7 @@ private fun AlarmCard(model: SessionModel, d: TrackingDisplay) {
         Column(Modifier.weight(1f), Arrangement.spacedBy(2.dp)) {
             Text("Alarm", fontSize = 12.sp, color = c.muted)
             d.alarmAt?.let { DotTime(TimeText.clock(it), 34.dp, c.head) }
-            model.confirm?.leadMinutes?.let { Text("$it minutes before arrival", fontSize = 13.sp, color = c.muted) }
+            model.confirm?.leadMinutes?.let { Text(leadValueLine(it), fontSize = 13.sp, color = c.muted) }
         }
         if (d.alarmNotSet) Pill("NOT SET", PillStyle.BAD) else Text("Set", fontWeight = FontWeight.Bold, color = c.tealText)
     }

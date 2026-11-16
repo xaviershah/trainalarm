@@ -169,6 +169,24 @@ class SessionModelTest {
         assertEquals(ServiceBuilder.time("08:37:00"), model.alarmAt)
     }
 
+    @Test fun everyMinuteFromOneToThirtyIsAcceptedAndMovesTheAlarmTime() = run {
+        confirmed(lead = null)
+        model.setLead(1)
+        assertEquals(ServiceBuilder.time("08:51:00"), model.alarmAt)
+        model.setLead(7)
+        assertEquals(ServiceBuilder.time("08:45:00"), model.alarmAt)
+        model.setLead(30)
+        assertEquals(ServiceBuilder.time("08:22:00"), model.alarmAt)
+    }
+
+    @Test fun aLeadTimeOutsideOneToThirtyIsIgnored() = run {
+        confirmed(lead = 10)
+        model.setLead(0)
+        assertEquals(10, model.confirm?.leadMinutes)
+        model.setLead(31)
+        assertEquals(10, model.confirm?.leadMinutes)
+    }
+
     @Test fun aSavedDefaultLeadTimePrefillsTheChoice() = run {
         settings.setDefaultLeadMinutes(10)
         confirmed(lead = null)

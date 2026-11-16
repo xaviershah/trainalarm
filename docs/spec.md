@@ -177,7 +177,7 @@ Poll interval: roughly every 30–60s while a journey is active.
    debug demo mode needing no token, and screenshots in `docs/ui-screenshots/`. The Android screens compiled,
    passed tests and lint, but were never seen (no emulator), so there are no Android screenshots yet. Not done:
    a live check against RTT (no token yet), alarm delivery (the iOS ring signal, the AlarmKit button text and
-   tint and the Settings test alarm are unit-tested but not checked on a device), and background tracking (Stage 5).
+   tint and the Settings test alarm are unit-tested but not checked on a device), and background tracking (Stage 5). The lead-time ruler picks any whole minute from 1 to 30 (a follow-up to Stage 4): the iOS ruler and its four screenshots were seen in the simulator; the Android ruler was compiled and unit-tested only, never seen.
 4b. Map screen — own spec: the route map from the UX reference, with its attribution, once a map
    library is chosen.
 5. Background-reliability hardening — dedicated stage; this is the #1

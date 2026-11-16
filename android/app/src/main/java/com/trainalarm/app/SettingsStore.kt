@@ -17,7 +17,9 @@ interface KeyValues {
 class SharedPrefsKeyValues(private val prefs: SharedPreferences) : KeyValues {
     override fun getString(key: String): String? = prefs.getString(key, null)
     override fun putString(key: String, value: String) = prefs.edit().putString(key, value).apply()
-    override fun getInt(key: String): Int? = if (prefs.contains(key)) prefs.getInt(key, 0) else null
+    override fun getInt(key: String): Int? = if (prefs.contains(key)) {
+        try { prefs.getInt(key, 0) } catch (e: ClassCastException) { null }  // a wrong-typed value reads as unset
+    } else null
     override fun putInt(key: String, value: Int) = prefs.edit().putInt(key, value).apply()
 }
 
@@ -45,7 +47,8 @@ class SettingsStore(private val store: KeyValues) {
     }
 
     companion object {
-        val LEAD_CHOICES = listOf(5, 10, 15, 20, 25, 30)
+        /** Every whole minute from 1 to 30. */
+        val LEAD_CHOICES = (1..30).toList()
         private const val THEME = "theme"
         private const val LEAD = "defaultLeadMinutes"
     }

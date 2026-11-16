@@ -104,7 +104,40 @@ struct BigButton: View {
     }
 }
 
-/// Picks a lead time from `choices`: tap or drag along the tick ruler. The marker sits on the choice.
+/// "1 minute", "7 minutes".
+func minutesText(_ n: Int) -> String { n == 1 ? "1 minute" : "\(n) minutes" }
+
+/// The line above the lead-time ruler: what is chosen, in words.
+func leadValueLine(_ minutes: Int?) -> String {
+    minutes.map { "\(minutesText($0)) before arrival" } ?? "Not chosen"
+}
+
+/// Where the ruler puts each choice, in points from its left edge. Pure, so it is tested without drawing:
+/// the ticks, the marker, the labels and tap/drag all use these same positions.
+struct RulerLayout: Equatable {
+    let count: Int
+    let width: CGFloat
+    let inset: CGFloat
+
+    var spacing: CGFloat { count > 1 ? max(0, width - inset * 2) / CGFloat(count - 1) : 0 }
+
+    /// The x of the choice at `index`.
+    func x(at index: Int) -> CGFloat { inset + spacing * CGFloat(index) }
+
+    /// The choice nearest to `x`, clamped to the first and last.
+    func index(at x: CGFloat) -> Int {
+        guard count > 1, spacing > 0 else { return 0 }
+        let raw = ((x - inset) / spacing).rounded()
+        guard raw.isFinite else { return 0 }
+        return Int(min(max(raw, 0), CGFloat(count - 1)))
+    }
+
+    /// Ticks at multiples of 5 are taller and carry a label.
+    static func isMajor(_ minutes: Int) -> Bool { minutes % 5 == 0 }
+}
+
+/// Picks a lead time from `choices`: tap or drag along the tick ruler. The marker sits on the choice, and a line above
+/// the ruler says what is chosen. One tick per choice; ticks at multiples of 5 are taller and labelled.
 struct LeadRuler: View {
     /// The next choice up or down from `selected`, clamped at both ends. Nothing chosen starts at the first choice.
     static func step(_ choices: [Int], from selected: Int?, up: Bool) -> Int {
@@ -119,43 +152,47 @@ struct LeadRuler: View {
     private let inset: CGFloat = 16
 
     var body: some View {
-        GeometryReader { geo in
-            let usable = geo.size.width - inset * 2
-            VStack(spacing: 6) {
-                ZStack(alignment: .leading) {
-                    Canvas { context, size in
-                        var x: CGFloat = 4.5
-                        while x < size.width {
-                            context.fill(Path(CGRect(x: x, y: size.height * 0.28, width: 1.5, height: size.height * 0.44)), with: .color(c.muted))
-                            x += 9
+        VStack(alignment: .leading, spacing: 8) {
+            Text(leadValueLine(selected)).font(.callout.weight(.semibold))
+                .foregroundStyle(selected == nil ? c.muted : c.head)
+            GeometryReader { geo in
+                let layout = RulerLayout(count: choices.count, width: geo.size.width, inset: inset)
+                VStack(spacing: 6) {
+                    ZStack(alignment: .leading) {
+                        Canvas { context, size in
+                            for (index, minutes) in choices.enumerated() {
+                                let height = size.height * (RulerLayout.isMajor(minutes) ? 0.52 : 0.36)
+                                let rect = CGRect(x: layout.x(at: index) - 0.75, y: (size.height - height) / 2, width: 1.5, height: height)
+                                context.fill(Path(rect), with: .color(c.muted))
+                            }
+                        }
+                        if let selected, let index = choices.firstIndex(of: selected) {
+                            Rectangle().fill(c.accent).frame(width: 3).offset(x: layout.x(at: index) - 1.5)
                         }
                     }
-                    if let selected, let index = choices.firstIndex(of: selected) {
-                        Rectangle().fill(c.accent).frame(width: 3)
-                            .offset(x: inset + usable * CGFloat(index) / CGFloat(choices.count - 1) - 1.5)
+                    .frame(height: 44)
+                    .background(c.surface2, in: RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .contentShape(Rectangle())
+                    .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                        onSelect(choices[layout.index(at: value.location.x)])
+                    })
+                    ZStack(alignment: .leading) {
+                        ForEach(Array(choices.enumerated()), id: \.element) { index, minutes in
+                            if RulerLayout.isMajor(minutes) {
+                                Text("\(minutes)").font(.dots(17)).foregroundStyle(minutes == selected ? c.head : c.muted)
+                                    .position(x: layout.x(at: index), y: 9)
+                            }
+                        }
                     }
+                    .frame(height: 18)
                 }
-                .frame(height: 44)
-                .background(c.surface2, in: RoundedRectangle(cornerRadius: 12))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .contentShape(Rectangle())
-                .gesture(DragGesture(minimumDistance: 0).onChanged { value in
-                    let fraction = max(0, min(1, (value.location.x - inset) / usable))
-                    onSelect(choices[Int((fraction * Double(choices.count - 1)).rounded())])
-                })
-                ZStack(alignment: .leading) {
-                    ForEach(Array(choices.enumerated()), id: \.element) { index, minutes in
-                        Text("\(minutes)").font(.dots(17)).foregroundStyle(minutes == selected ? c.head : c.muted)
-                            .position(x: inset + usable * CGFloat(index) / CGFloat(choices.count - 1), y: 9)
-                    }
-                }
-                .frame(height: 18)
             }
+            .frame(height: 70)
         }
-        .frame(height: 70)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Minutes before arrival")
-        .accessibilityValue(selected.map { "\($0) minutes" } ?? "not chosen")
+        .accessibilityValue(selected.map(minutesText) ?? "not chosen")
         .accessibilityAdjustableAction { direction in
             onSelect(Self.step(choices, from: selected, up: direction == .increment))
         }
@@ -198,7 +235,7 @@ struct AlarmDial: View {
         }
         .aspectRatio(1, contentMode: .fit)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(lead.map { "Alarm \($0) minutes before arrival" } ?? "No alarm time chosen")
+        .accessibilityLabel(lead.map { "Alarm \(minutesText($0)) before arrival" } ?? "No alarm time chosen")
     }
 
     private func point(_ center: CGPoint, _ radius: CGFloat, _ angle: Double) -> CGPoint {

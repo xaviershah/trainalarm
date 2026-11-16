@@ -34,17 +34,20 @@ class ScenarioTest {
         override fun putInt(key: String, value: Int) { map[key] = value }
     }
 
+    private var lastSettings: SettingsStore? = null
+
     private val json = """[{"crs":"KGX","name":"London Kings Cross","lat":51.5309,"lon":-0.1233},{"crs":"PBO","name":"Peterborough","lat":52.5748,"lon":-0.2504},{"crs":"EDB","name":"Edinburgh","lat":55.9521,"lon":-3.1894}]"""
     private val start = Instant.parse("2026-07-01T12:00:00Z")
 
     private suspend fun run(scope: CoroutineScope, scenario: Scenario): SessionModel {
         val directory = StationDirectory.parse(json)
         val clock = FakeClock(start)
+        val settings = SettingsStore(MemoryKeyValues()).also { lastSettings = it }
         val model = SessionModel(
             DemoProvider(clock), NoopAlarmScheduler(), directory, FakeLocationSource(), clock,
-            DemoPermissions(), SettingsStore(MemoryKeyValues()), scope
+            DemoPermissions(), settings, scope
         )
-        scenario.apply(model, directory, clock.now())
+        scenario.apply(model, settings, directory, clock.now())
         return model
     }
 
@@ -90,9 +93,18 @@ class ScenarioTest {
         scenario(Scenario.BOARD) { model -> assertEquals(3, (model.board as BoardState.Loaded).services.size) }
         scenario(Scenario.CONFIRM) { model ->
             assertEquals(SessionPhase.Confirming, model.phase)
-            assertEquals(15, model.confirm?.leadMinutes)
+            assertEquals(7, model.confirm?.leadMinutes)
             assertNotNull(model.alarmAt)
         }
+    }
+
+    @Test fun theConfirmScenarioUsesAnOddLeadTimeAndTheTrackingScenariosKeepFifteen() {
+        scenario(Scenario.CONFIRM) { model -> assertEquals(7, model.confirm?.leadMinutes) }
+        scenario(Scenario.TRACKING) { model -> assertEquals(15, model.confirm?.leadMinutes) }
+    }
+
+    @Test fun theSettingsScenarioSetsTheDefaultLeadTimeToSeven() {
+        scenario(Scenario.SETTINGS) { _ -> assertEquals(7, lastSettings!!.defaultLeadMinutes.value) }
     }
 
     @Test fun trackingScenariosShowTheirStates() {
